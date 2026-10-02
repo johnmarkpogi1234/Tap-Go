@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tap&amp;Go — Business Profile Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#161A20; --paper:#EEF1F6; --panel:#FFFFFF;
+  --line:#DADFE8; --muted:#6B7280;
+  --brass:#C8842A; --teal:#2F6F6B; --plum:#6E4C6B; --danger:#B3402E;
+  --radius-lg:18px;
+  --font-head:'Space Grotesk', system-ui, sans-serif;
+  --font-body:'Inter', system-ui, -apple-system, sans-serif;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#ECEEF3; --paper:#14171D; --panel:#1B1F27; --line:#2B313D; --muted:#8B93A3; }
+}
+:root.public{padding:0;}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); -webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:var(--font-head); font-weight:600; letter-spacing:-0.01em; margin:0;}
+button{font-family:inherit;}
+a{color:inherit;}
+input,select,textarea{font-family:inherit; font-size:15px;}
+
+.topbar{position:sticky; top:0; z-index:20; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+.brand{display:flex; align-items:center; gap:10px; cursor:pointer;}
+.brand .mark{width:30px; height:30px; border-radius:9px; background:linear-gradient(135deg, var(--brass), var(--plum)); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--font-head); font-weight:700; font-size:15px;}
+.brand .name{font-family:var(--font-head); font-weight:600; font-size:17px;}
+.topbar-actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+.container{max-width:920px; margin:0 auto; padding:24px 20px 80px;}
+
+.btn{border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:10px 16px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; transition:transform .08s ease, border-color .15s ease;}
+.btn:active{transform:scale(0.97);}
+.btn:hover{border-color:var(--muted);}
+.btn-primary{background:var(--brass); border-color:var(--brass); color:#fff;}
+.btn-primary:hover{border-color:var(--brass); filter:brightness(1.06);}
+.btn-ghost{background:transparent; border-color:transparent;}
+.btn-danger{color:var(--danger); border-color:color-mix(in srgb, var(--danger) 40%, var(--line));}
+.btn-sm{padding:7px 12px; font-size:13px; border-radius:8px;}
+.btn[disabled]{opacity:.5; cursor:not-allowed;}
+.icon-btn{width:34px; height:34px; border-radius:9px; border:1px solid var(--line); background:var(--panel); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink);}
+
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); padding:22px;}
+.card + .card{margin-top:16px;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px;}
+.field input[type=text], .field input[type=url], .field input[type=tel], .field input[type=email], .field input[type=password],
+.field input[type=number], .field input[type=date], .field input[type=time], .field textarea, .field select, select.plain{
+  width:100%; padding:11px 12px; border-radius:9px; border:1px solid var(--line); background:var(--paper); color:var(--ink); outline:none;}
+.field textarea{resize:vertical; min-height:70px;}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--brass);}
+.hint{font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.5;}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media (max-width:560px){.row2{grid-template-columns:1fr;}}
+
+.tabs{display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:18px;}
+.tab{padding:9px 15px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--muted); border:1px solid var(--line); cursor:pointer; white-space:nowrap;}
+.tab.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
+.profile-card{border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; background:var(--panel); display:flex; flex-direction:column;}
+.profile-card .swatch{height:64px;}
+.profile-card .pc-body{padding:16px; flex:1; display:flex; flex-direction:column; gap:4px;}
+.pc-logo{width:44px; height:44px; border-radius:12px; margin-top:-38px; border:3px solid var(--panel); background:var(--paper); display:flex; align-items:center; justify-content:center; font-size:20px; overflow:hidden; font-weight:700;}
+.pc-logo img{width:100%; height:100%; object-fit:cover;}
+.pc-name{font-family:var(--font-head); font-weight:600; font-size:16px; margin-top:6px;}
+.pc-meta{font-size:12.5px; color:var(--muted);}
+.pc-status{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-top:4px;}
+.pc-status.live{color:var(--teal);} .pc-status.locked{color:var(--brass);} .pc-status.draft{color:var(--muted);}
+.pc-actions{display:flex; gap:6px; padding:12px 16px; border-top:1px solid var(--line); flex-wrap:wrap;}
+.new-card{border:1.5px dashed var(--line); border-radius:var(--radius-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:170px; cursor:pointer; color:var(--muted);}
+.new-card:hover{border-color:var(--brass); color:var(--brass);}
+.new-card .plus{font-size:26px; font-family:var(--font-head);}
+.empty{text-align:center; padding:60px 20px; color:var(--muted);}
+.empty h2{color:var(--ink); margin-bottom:8px;}
+
+.item-row{display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; background:var(--paper);}
+.item-row .ic{width:34px; height:34px; border-radius:9px; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.item-row .info{flex:1; min-width:0;}
+.item-row .t1{font-weight:600; font-size:14px;}
+.item-row .t2{font-size:12.5px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.item-row .acts{display:flex; gap:6px; flex-shrink:0;}
+.addbar{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+.chip{padding:8px 13px; border-radius:999px; border:1px solid var(--line); background:var(--panel); font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; color:var(--ink);}
+.chip:hover{border-color:var(--brass);}
+.chip.selected{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+.theme-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:12px;}
+.theme-swatch{border-radius:14px; height:76px; cursor:pointer; border:2px solid transparent; display:flex; align-items:flex-end; padding:8px;}
+.theme-swatch.selected{border-color:var(--ink);}
+.theme-swatch span{font-size:11.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.4);}
+.color-row{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.color-row input[type=color]{width:40px; height:40px; border-radius:9px; border:1px solid var(--line); padding:2px; background:var(--panel); cursor:pointer;}
+.color-row .lbl{font-size:13.5px; font-weight:600; flex:1;}
+.color-row input.hex{width:96px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-family:monospace; font-size:13px;}
+.pal{width:44px; height:44px; border-radius:12px; border:2px solid var(--panel); box-shadow:0 0 0 1px var(--line); cursor:pointer;}
+.pal:hover{transform:scale(1.08);}
+.subhead{font-size:12.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:18px 0 8px;}
+#themePreview{border-radius:16px; overflow:hidden; margin-bottom:16px; border:1px solid var(--line);}
+
+.link-box{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--paper);}
+.link-box input{flex:1; border:none; background:transparent; outline:none; font-size:14px; color:var(--ink); font-family:monospace; min-width:0;}
+.status-banner{display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; font-size:13.5px; font-weight:600; margin-bottom:16px;}
+.status-banner.locked{background:color-mix(in srgb, var(--brass) 15%, transparent); color:var(--brass);}
+
+/* ---------- Public profile ---------- */
+.profile-shell{min-height:100vh; padding:0 0 60px;}
+.profile-hero{padding:56px 20px 34px; text-align:center;}
+.profile-hero.mini{padding:26px 16px 14px;}
+.profile-logo{width:88px; height:88px; border-radius:24px; margin:0 auto 16px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.15);}
+.mini .profile-logo{width:56px; height:56px; font-size:24px; margin-bottom:10px; border-radius:16px;}
+.profile-logo img{width:100%; height:100%; object-fit:cover;}
+.profile-name{font-weight:700; font-size:calc(26px * var(--tsize,1)); margin-bottom:6px; font-family:var(--font-head, inherit);}
+.mini .profile-name{font-size:calc(19px * var(--tsize,1));}
+.profile-tagline{font-size:calc(15px * var(--tsize,1)); opacity:.85; max-width:420px; margin:0 auto;}
+.profile-body{max-width:480px; margin:0 auto; padding:0 20px;}
+.mini .profile-body{padding:0 16px 18px;}
+.profile-bio{font-size:calc(14.5px * var(--tsize,1)); line-height:1.6; opacity:.9; text-align:center; margin-bottom:28px;}
+.link-list{display:flex; flex-direction:column; gap:11px; margin-bottom:32px;}
+.mini .link-list{margin-bottom:0; gap:9px;}
+.link-btn{display:flex; align-items:center; gap:13px; padding:14px 16px; text-decoration:none; font-weight:600; font-size:calc(14.5px * var(--tsize,1)); transition:transform .1s ease;}
+.link-btn:active{transform:scale(0.98);}
+.link-btn .ic{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.section-title{font-weight:600; font-size:calc(17px * var(--tsize,1)); margin-bottom:14px; font-family:var(--font-head, inherit);}
+.book-card{border-radius:16px; padding:18px; margin-bottom:20px; background:color-mix(in srgb, currentColor 9%, transparent);}
+.svc-pick{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+.svc-opt,.slot{border:1.5px solid color-mix(in srgb, currentColor 35%, transparent); cursor:pointer; font-weight:600;}
+.svc-opt{padding:9px 13px; border-radius:10px; font-size:13px;}
+.slot-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:8px; margin:10px 0 14px;}
+.slot{padding:9px 4px; text-align:center; border-radius:9px; font-size:12.5px;}
+.svc-opt.selected,.slot.selected{background:var(--acc); color:var(--acc-ink); border-color:var(--acc);}
+.pf-input{width:100%; padding:12px; border-radius:10px; border:1.5px solid color-mix(in srgb, currentColor 28%, transparent); background:color-mix(in srgb, currentColor 8%, transparent); color:inherit; margin-bottom:10px; outline:none; font-family:inherit; font-size:calc(14px * var(--tsize,1));}
+.pf-input::placeholder{color:inherit; opacity:.6;}
+.book-submit{width:100%; padding:13px; border-radius:11px; font-weight:700; font-size:calc(14.5px * var(--tsize,1)); border:none; cursor:pointer; background:var(--acc); color:var(--acc-ink);}
+.foot-mark{text-align:center; font-size:11.5px; opacity:.5; margin-top:30px;}
+.center-msg{max-width:380px; margin:120px auto; text-align:center; padding:0 24px;}
+.center-msg .em{font-size:40px; margin-bottom:14px;}
+.preview-bar{position:sticky; top:0; z-index:30; background:#111; color:#fff; font-size:12.5px; text-align:center; padding:8px;}
+
+.modal-overlay{position:fixed; inset:0; background:rgba(10,12,16,.55); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal{background:var(--panel); border-radius:18px; padding:24px; max-width:420px; width:100%; max-height:90vh; overflow:auto;}
+.modal h3{margin-bottom:10px;}
+.modal p{font-size:13.5px; color:var(--muted); margin:0 0 16px; line-height:1.5;}
+.modal .acts{display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;}
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:999px; font-size:13.5px; font-weight:600; transition:all .25s ease; z-index:200; pointer-events:none; max-width:90vw; text-align:center;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.scroller{overflow-x:auto;}
+
+/* ================= LUXE LAYER (overrides + motion) ================= */
+:root{
+  --ink:#1B1620; --paper:#F3F1F6; --panel:#FFFFFF; --line:#E1DCE8; --muted:#766C82;
+  --brass:#B4862B; --gold-hi:#EBD08D; --teal:#2C7A70; --danger:#B3402E;
+  --gold:linear-gradient(135deg,#EDD48F 0%,#CDA044 46%,#A87A22 100%);
+  --radius-lg:20px; --ease:cubic-bezier(.22,1,.36,1);
+  --font-head:'Cormorant Garamond',Georgia,serif;
+  --shadow:0 1px 0 rgba(255,255,255,.7) inset,0 18px 40px -22px rgba(48,24,70,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#F2EDF5; --paper:#0E0B12; --panel:#171320; --line:#2A2335; --muted:#9A91A8; --brass:#D8B05A;
+    --shadow:0 1px 0 rgba(255,255,255,.04) inset,0 24px 50px -26px rgba(0,0,0,.9); }
+}
+*{scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--brass) 50%,transparent) transparent;}
+:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+body{background:
+  radial-gradient(800px 480px at 88% -8%, color-mix(in srgb,var(--brass) 15%,transparent), transparent 62%),
+  radial-gradient(700px 520px at -8% 6%, color-mix(in srgb,var(--plum) 16%,transparent), transparent 62%), var(--paper);
+  background-attachment:fixed;}
+h1,h2,h3{font-weight:600; letter-spacing:0;}
+.container h1{font-size:clamp(30px,6vw,40px)!important; line-height:1.05;}
+.card > div[style*="font-weight:600"]{font-family:var(--font-head); font-size:22px; font-weight:600!important;}
+
+/* top bar + brand */
+.topbar{padding:12px 22px; border-bottom:0; -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--brass) 65%,transparent),transparent) bottom/100% 1px no-repeat, color-mix(in srgb,var(--paper) 72%,transparent);}
+.brand .mark{position:relative; overflow:hidden; width:34px; height:34px; border-radius:11px; background:var(--gold); color:#2A1D08; font-size:23px; box-shadow:0 6px 18px -6px var(--brass);}
+.brand .mark::after,.btn-primary::after{content:""; position:absolute; inset:0; pointer-events:none; transform:translateX(-130%);
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);}
+.brand .mark::after{animation:sheen 7s var(--ease) 1.5s infinite;}
+.brand .name{font-size:26px; letter-spacing:.01em;}
+
+/* buttons, inputs */
+.btn{position:relative; overflow:hidden; border-radius:12px; transition:transform .3s var(--ease), border-color .25s, box-shadow .3s var(--ease);}
+.btn:hover{transform:translateY(-1px); border-color:var(--brass); box-shadow:0 10px 24px -14px var(--brass);}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--gold); border-color:transparent; color:#2A1D08; box-shadow:0 10px 24px -12px var(--brass);}
+.btn-primary:hover{border-color:transparent; filter:none; box-shadow:0 14px 30px -12px var(--brass);}
+.btn-primary:hover::after{transform:translateX(130%); transition:transform .8s var(--ease);}
+.btn-ghost:hover,.btn-ghost:active{box-shadow:none;}
+.icon-btn{transition:transform .3s var(--ease), border-color .25s, color .25s;}
+.icon-btn:hover{border-color:var(--brass); color:var(--brass); transform:translateY(-1px);}
+.field input,.field textarea,.field select,select.plain,.color-row input.hex{transition:border-color .25s, box-shadow .3s var(--ease);}
+.field input:focus,.field textarea:focus,.field select:focus,select.plain:focus{border-color:var(--brass); box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 18%,transparent);}
+.link-box{transition:border-color .25s, box-shadow .3s var(--ease);}
+.link-box:focus-within{border-color:var(--brass); box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 18%,transparent);}
+
+/* cards, rows, chips, tabs */
+.card{position:relative; box-shadow:var(--shadow);}
+.card::before{content:""; position:absolute; left:24px; right:24px; top:-1px; height:1px; opacity:.6;
+  background:linear-gradient(90deg,transparent,var(--brass),transparent);}
+.subhead{text-transform:none; letter-spacing:.01em; font-family:var(--font-head); font-size:18px; font-weight:600; color:var(--ink);
+  padding-bottom:6px; border-bottom:1px solid color-mix(in srgb,var(--brass) 45%,var(--line));}
+.item-row{transition:border-color .3s, transform .4s var(--ease), box-shadow .4s var(--ease);}
+.item-row:hover{border-color:color-mix(in srgb,var(--brass) 55%,var(--line)); transform:translateX(3px); box-shadow:0 12px 24px -18px var(--brass);}
+.chip,.tab{transition:transform .3s var(--ease), border-color .25s, box-shadow .3s var(--ease), color .25s;}
+.chip:hover,.tab:hover{transform:translateY(-1px); border-color:var(--brass);}
+.tab.active,.chip.selected{background:var(--gold); color:#2A1D08; border-color:transparent; box-shadow:0 8px 20px -10px var(--brass);}
+.chip.selected,.svc-opt.selected,.slot.selected{animation:pop .4s var(--ease);}
+.theme-swatch{transition:transform .4s var(--ease), box-shadow .4s var(--ease), border-color .3s;}
+.theme-swatch:hover{transform:translateY(-3px) scale(1.02); box-shadow:0 16px 26px -16px rgba(0,0,0,.6);}
+.theme-swatch.selected{border-color:var(--brass); box-shadow:0 0 0 3px color-mix(in srgb,var(--brass) 30%,transparent);}
+.pal{transition:transform .35s var(--ease);}
+
+/* dashboard */
+.profile-card{position:relative; box-shadow:var(--shadow); transition:transform .5s var(--ease), box-shadow .5s var(--ease), border-color .3s;}
+.profile-card:hover{transform:translateY(-5px); border-color:color-mix(in srgb,var(--brass) 60%,var(--line)); box-shadow:0 30px 50px -28px rgba(30,10,50,.55);}
+.profile-card .swatch{height:84px; position:relative; overflow:hidden;}
+.profile-card .swatch::after{content:""; position:absolute; inset:0; transform:translateX(-130%);
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);}
+.profile-card:hover .swatch::after{transform:translateX(130%); transition:transform 1s var(--ease);}
+.pc-logo{width:52px; height:52px; margin-top:-44px; border-radius:15px; box-shadow:0 8px 20px -8px rgba(0,0,0,.4);}
+.pc-name{font-size:24px; font-weight:600; line-height:1.1;}
+.pc-status{text-transform:none; letter-spacing:.02em; font-size:12.5px;}
+.new-card{transition:transform .5s var(--ease), border-color .3s, color .3s, background .3s;}
+.new-card:hover{transform:translateY(-4px); background:color-mix(in srgb,var(--brass) 7%,transparent);}
+.new-card .plus{transition:transform .6s var(--ease);}
+.new-card:hover .plus{transform:rotate(90deg) scale(1.2);}
+.empty>div:first-child{color:var(--brass); animation:float 4s ease-in-out infinite;}
+.empty h2{font-size:34px;}
+
+/* modal + toast */
+.modal-overlay{background:rgba(10,6,16,.62); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); animation:fadeIn .3s ease;}
+.modal{border-radius:22px; border:1px solid color-mix(in srgb,var(--brass) 35%,var(--line)); box-shadow:0 40px 80px -30px rgba(0,0,0,.7); animation:modalIn .5s var(--ease);}
+.modal h3{font-size:28px;}
+.toast{border:1px solid color-mix(in srgb,var(--brass) 50%,transparent); box-shadow:0 14px 30px -12px rgba(0,0,0,.5); transition:opacity .4s var(--ease), transform .5s var(--ease);}
+
+/* public profile page */
+.profile-shell{position:relative; overflow:hidden; isolation:isolate;}
+.profile-shell::before,.profile-shell::after{content:""; position:absolute; z-index:-1; border-radius:50%; pointer-events:none; filter:blur(30px);
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 42%,transparent),transparent 68%);}
+.profile-shell::before{width:460px; height:460px; top:-170px; left:50%; margin-left:-230px; animation:drift 16s ease-in-out infinite alternate;}
+.profile-shell::after{width:380px; height:380px; bottom:-120px; right:-140px; opacity:.7; animation:drift 20s ease-in-out infinite alternate-reverse;}
+.profile-shell .profile-logo{border-radius:28px; outline:1px solid color-mix(in srgb,var(--acc) 55%,transparent); outline-offset:6px;
+  animation:logoIn 1.1s var(--ease) backwards, halo 4s ease-in-out 1.4s infinite;}
+.profile-shell .profile-name{font-size:calc(36px*var(--tsize,1)); font-weight:600; line-height:1.1; animation:nameIn 1.2s var(--ease) .2s backwards;}
+.profile-shell .profile-tagline{animation:rise .9s var(--ease) .5s backwards;}
+.profile-shell .profile-bio{animation:rise .9s var(--ease) .65s backwards;}
+.profile-shell .link-btn{animation:rise .9s var(--ease) backwards; animation-delay:calc(.75s + var(--i,0)*.09s);}
+.profile-shell .section-title{font-size:calc(26px*var(--tsize,1)); animation:rise .9s var(--ease) 1.1s backwards;}
+.profile-shell .showcase{animation:showIn 1s var(--ease) .55s backwards;}
+.profile-shell .book-card{animation:rise 1s var(--ease) 1.2s backwards;}
+.profile-shell .foot-mark{animation:fadeIn 1.4s ease 1.6s backwards;}
+.link-btn{position:relative; overflow:hidden; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); transition:transform .45s var(--ease), box-shadow .45s var(--ease);}
+.link-btn::after{content:""; position:absolute; inset:0; pointer-events:none; transform:translateX(-130%);
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);}
+.link-btn:hover{transform:translateY(-3px); box-shadow:0 18px 30px -18px rgba(0,0,0,.65);}
+.link-btn:hover::after{transform:translateX(130%); transition:transform .9s var(--ease);}
+.link-btn:active{transform:scale(.98);}
+.link-btn .ic{transition:transform .5s var(--ease);}
+.link-btn:hover .ic{transform:scale(1.1) rotate(-6deg);}
+.book-card{-webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid color-mix(in srgb,currentColor 14%,transparent); box-shadow:0 30px 60px -34px rgba(0,0,0,.6);}
+
+/* ---- Showcase: product video / 3D model ---- */
+.showcase{position:relative; margin-bottom:26px; border-radius:18px; padding:5px; background:linear-gradient(135deg,color-mix(in srgb,var(--acc,var(--brass)) 65%,transparent),transparent 60%,color-mix(in srgb,var(--acc,var(--brass)) 40%,transparent));}
+.sc-frame{position:relative; width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:#0c0c10; box-shadow:0 24px 50px -26px rgba(0,0,0,.6);}
+.sc-frame iframe,.sc-frame video{width:100%; height:100%; border:0; display:block; object-fit:cover; background:#000;}
+.sc-frame.sc-3d{aspect-ratio:4/3; background:radial-gradient(ellipse at 50% 70%,color-mix(in srgb,var(--acc,var(--brass)) 22%,transparent),transparent 70%),#0c0c10;}
+.sc-frame.sc-3d model-viewer{--poster-color:transparent;}
+.sc-caption{text-align:center; font-size:12.5px; opacity:.75; margin-top:9px; font-style:italic;}
+.sc-linkout{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; aspect-ratio:16/9; border-radius:14px; background:color-mix(in srgb,currentColor 10%,transparent); color:inherit; text-decoration:none; font-weight:600; border:1.5px dashed color-mix(in srgb,currentColor 30%,transparent);}
+@keyframes showIn{from{opacity:0; transform:translateY(16px) scale(.97); filter:blur(6px);}}
+.svc-opt,.slot{transition:transform .3s var(--ease), background .3s, border-color .3s, box-shadow .3s;}
+.svc-opt:hover,.slot:hover{transform:translateY(-2px); border-color:var(--acc);}
+.svc-opt.selected,.slot.selected{box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 30%,transparent), 0 10px 20px -10px var(--acc);}
+.pf-input{transition:border-color .3s, box-shadow .3s var(--ease);}
+.pf-input:focus{border-color:var(--acc); box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent);}
+.book-submit{position:relative; overflow:hidden; transition:transform .3s var(--ease), box-shadow .3s var(--ease);}
+.book-submit::after{content:""; position:absolute; inset:0; pointer-events:none; transform:translateX(-130%);
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 50%,transparent 65%);}
+.book-submit:hover{transform:translateY(-2px); box-shadow:0 16px 28px -14px var(--acc);}
+.book-submit:hover::after{transform:translateX(130%); transition:transform .8s var(--ease);}
+.book-submit:active{transform:scale(.98);}
+.book-submit[disabled]{opacity:.7; cursor:progress;}
+.center-msg h2{font-size:34px;}
+.center-msg .em{display:inline-block; animation:float 4s ease-in-out infinite;}
+
+/* one orchestrated entrance when a screen opens (class added by playEnter) */
+.link-list>:nth-child(1),.grid>:nth-child(1){--i:0} .link-list>:nth-child(2),.grid>:nth-child(2){--i:1}
+.link-list>:nth-child(3),.grid>:nth-child(3){--i:2} .link-list>:nth-child(4),.grid>:nth-child(4){--i:3}
+.link-list>:nth-child(5),.grid>:nth-child(5){--i:4} .link-list>:nth-child(6),.grid>:nth-child(6){--i:5}
+.link-list>:nth-child(7),.grid>:nth-child(7){--i:6} .link-list>:nth-child(8),.grid>:nth-child(8){--i:7}
+.link-list>:nth-child(n+9),.grid>:nth-child(n+9){--i:8}
+#app.enter .container>:not(.grid){animation:rise .8s var(--ease) backwards;}
+#app.enter .grid>*{animation:rise .9s var(--ease) backwards; animation-delay:calc(.15s + var(--i,0)*.08s);}
+#app.enter #tabBody>*{animation:rise .7s var(--ease) backwards;}
+#app.enter #tabBody>:nth-child(2){animation-delay:.08s;} #app.enter #tabBody>:nth-child(3){animation-delay:.16s;} #app.enter #tabBody>:nth-child(n+4){animation-delay:.24s;}
+
+/* ================= AMBIENT BACKGROUND MOTION ================= */
+.bg-scene{position:fixed; inset:0; z-index:-3; overflow:hidden; pointer-events:none;}
+.bg-scene .glow{position:absolute; border-radius:50%; filter:blur(70px); opacity:.55; mix-blend-mode:normal;}
+@media (prefers-color-scheme: dark){.bg-scene .glow{opacity:.4;}}
+.bg-scene .glow-a{width:520px; height:520px; top:-140px; left:-120px; background:radial-gradient(circle,color-mix(in srgb,var(--brass) 55%,transparent),transparent 70%); animation:driftSlow 26s var(--ease) infinite alternate;}
+.bg-scene .glow-b{width:460px; height:460px; bottom:-160px; right:-100px; background:radial-gradient(circle,color-mix(in srgb,var(--plum) 55%,transparent),transparent 70%); animation:driftSlow 32s var(--ease) infinite alternate-reverse;}
+.bg-scene .glow-c{width:380px; height:380px; top:38%; left:50%; margin-left:-190px; background:radial-gradient(circle,color-mix(in srgb,var(--teal) 45%,transparent),transparent 70%); opacity:.28; animation:pulseGlow 12s ease-in-out infinite;}
+.bg-scene .orbit{position:absolute; top:50%; left:50%; border-radius:50%; border:1px solid color-mix(in srgb,var(--brass) 16%,transparent); transform:translate(-50%,-50%); animation:spin linear infinite;}
+.bg-scene .orbit::before{content:""; position:absolute; top:-7px; left:50%; width:11px; height:11px; margin-left:-5.5px; border-radius:50% 50% 50% 0; background:var(--gold); box-shadow:0 0 16px 4px color-mix(in srgb,var(--brass) 70%,transparent); animation:dropWobble 3.2s ease-in-out infinite;}
+.bg-scene .orbit-1{width:420px; height:420px; animation-duration:38s;}
+.bg-scene .orbit-2{width:640px; height:640px; animation-duration:58s; animation-direction:reverse; border-color:color-mix(in srgb,var(--plum) 16%,transparent);}
+.bg-scene .orbit-2::before{width:8px; height:8px; margin-left:-4px; background:var(--plum); box-shadow:0 0 14px 4px color-mix(in srgb,var(--plum) 65%,transparent); animation-duration:3.8s;}
+.bg-scene .orbit-3{width:860px; height:860px; animation-duration:80s; border-color:color-mix(in srgb,var(--teal) 14%,transparent);}
+.bg-scene .orbit-3::before{width:7px; height:7px; margin-left:-3.5px; background:var(--teal); box-shadow:0 0 12px 4px color-mix(in srgb,var(--teal) 60%,transparent); animation-duration:4.4s;}
+/* free-floating droplets, each tumbling around its own tight circular orbit */
+.bg-scene .dorbit{position:absolute; top:50%; left:50%; margin:0; border-radius:50%; animation:spin linear infinite;}
+.bg-scene .drop{position:absolute; top:0; left:50%; border-radius:50% 50% 50% 0; filter:drop-shadow(0 4px 10px rgba(20,10,0,.28)); animation:dropWobble 3s ease-in-out infinite;}
+.bg-scene .drop::after{content:""; position:absolute; top:21%; left:18%; width:30%; height:30%; border-radius:50%; background:rgba(255,255,255,.6); filter:blur(.5px);}
+.bg-scene .dorbit-1{width:260px; height:260px; margin:-130px 0 0 -130px; animation-duration:19s;}
+.bg-scene .dorbit-1 .drop{width:15px; height:15px; margin:-7.5px 0 0 -7.5px; background:linear-gradient(135deg,var(--gold-hi,#EBD08D),var(--brass));}
+.bg-scene .dorbit-2{width:340px; height:340px; margin:-170px 0 0 -170px; animation-duration:27s; animation-direction:reverse;}
+.bg-scene .dorbit-2 .drop{width:11px; height:11px; margin:-5.5px 0 0 -5.5px; background:linear-gradient(135deg,color-mix(in srgb,var(--plum) 70%,#fff),var(--plum)); animation-duration:3.6s;}
+.bg-scene .dorbit-3{width:560px; height:560px; margin:-280px 0 0 -280px; animation-duration:45s;}
+.bg-scene .dorbit-3 .drop{width:18px; height:18px; margin:-9px 0 0 -9px; background:linear-gradient(135deg,color-mix(in srgb,var(--teal) 70%,#fff),var(--teal)); animation-duration:5s;}
+.bg-scene .dorbit-4{width:190px; height:190px; margin:-95px 0 0 -95px; animation-duration:14s; animation-direction:reverse;}
+.bg-scene .dorbit-4 .drop{width:9px; height:9px; margin:-4.5px 0 0 -4.5px; background:linear-gradient(135deg,var(--gold-hi,#EBD08D),var(--brass)); animation-duration:2.6s;}
+@keyframes dropWobble{0%,100%{transform:rotate(135deg) scale(1,1);}50%{transform:rotate(135deg) scale(1.1,.9);}}
+@media (max-width:640px){.bg-scene .dorbit-2,.bg-scene .dorbit-3{display:none;}}
+
+/* ---------- Falling particles (glitter / wind), colour driven by theme ---------- */
+.particle-field{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
+.particle{position:absolute; top:-6%; left:0; border-radius:50%;
+  background:radial-gradient(circle at 35% 32%, #fff, var(--pc,var(--brass)) 55%, transparent 78%);
+  box-shadow:0 0 4px 0.5px color-mix(in srgb, var(--pc,var(--brass)) 60%, transparent);
+  opacity:0; animation:particleFall linear infinite; will-change:transform,opacity;}
+@keyframes particleFall{
+  0%{transform:translate3d(0,-8vh,0) rotate(0deg); opacity:0;}
+  8%{opacity:var(--op,.85);}
+  50%{transform:translate3d(var(--drift,24px),50vh,0) rotate(180deg);}
+  92%{opacity:var(--op,.85);}
+  100%{transform:translate3d(0,112vh,0) rotate(360deg); opacity:0;}
+}
+@media (prefers-reduced-motion:reduce){.particle{animation:none; opacity:0;}}
+.bg-scene .ring{position:absolute; top:50%; left:50%; width:1100px; height:1100px; margin:-550px 0 0 -550px; border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb,var(--brass) 22%,transparent) 20deg, transparent 50deg, transparent 200deg, color-mix(in srgb,var(--plum) 18%,transparent) 225deg, transparent 255deg, transparent 360deg);
+  animation:spin 70s linear infinite; opacity:.5;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+.bg-scene .ring{animation-name:spinRing;}
+@keyframes spinRing{to{transform:rotate(360deg);}}
+@keyframes driftSlow{to{transform:translate(40px,30px) scale(1.12);}}
+@keyframes pulseGlow{0%,100%{opacity:.2; transform:translate(-50%,0) scale(1);}50%{opacity:.4; transform:translate(-50%,0) scale(1.18);}}
+@media (max-width:640px){.bg-scene .orbit-2,.bg-scene .orbit-3,.bg-scene .ring{display:none;}}
+
+@keyframes rise{from{opacity:0; transform:translateY(18px);}}
+@keyframes nameIn{from{opacity:0; letter-spacing:.16em; filter:blur(10px);}}
+@keyframes logoIn{from{opacity:0; transform:scale(.6) rotate(-8deg); filter:blur(8px);}}
+@keyframes halo{0%{box-shadow:0 10px 30px rgba(0,0,0,.15),0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent);}100%{box-shadow:0 10px 30px rgba(0,0,0,.15),0 0 0 22px transparent;}}
+@keyframes drift{to{transform:translate(50px,40px) scale(1.15);}}
+@keyframes sheen{0%,60%{transform:translateX(-130%);}100%{transform:translateX(130%);}}
+@keyframes float{50%{transform:translateY(-8px);}}
+@keyframes fadeIn{from{opacity:0;}}
+@keyframes modalIn{from{opacity:0; transform:translateY(24px) scale(.96);}}
+@keyframes pop{from{transform:scale(.92);}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; animation-iteration-count:1!important; animation-delay:0s!important; transition-duration:.01ms!important;}
+}
+
+/* ================= REQUESTED FEATURE LAYER ================= */
+:root{
+  --glass-bg:rgba(255,255,255,.12);
+  --glass-border:rgba(255,255,255,.22);
+  --glass-shadow:0 20px 60px rgba(0,0,0,.22);
+  --holo:linear-gradient(120deg,#ff4fd8,#7c5cff,#2de2e6,#9cff57,#ffe45e,#ff4fd8);
+}
+html[data-theme="dark"]{
+  --ink:#F4F2FA; --paper:#090A10; --panel:#11131C; --line:#292D3A; --muted:#969CAF;
+}
+html[data-theme="light"]{
+  --ink:#17131E; --paper:#F3F1F6; --panel:#FFFFFF; --line:#E1DCE8; --muted:#766C82;
+}
+.glass-card,.profile-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  background-color:color-mix(in srgb,var(--panel) 68%,transparent);
+  border:1px solid var(--glass-border);
+  -webkit-backdrop-filter:blur(20px) saturate(1.35);
+  backdrop-filter:blur(20px) saturate(1.35);
+  box-shadow:var(--glass-shadow),0 1px 0 rgba(255,255,255,.12) inset;
+}
+html[data-theme="dark"] .glass-card,html[data-theme="dark"] .profile-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.025));
+  border-color:rgba(255,255,255,.13);
+}
+.theme-swatch.holo{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+}
+.theme-swatch.holo::before{
+  content:"";position:absolute;inset:-2px;padding:2px;border-radius:14px;
+  background:var(--holo);background-size:300% 300%;animation:holoShift 4s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s ease;
+}
+.theme-swatch.holo:hover::before{opacity:1;}
+.theme-swatch.holo:hover{box-shadow:0 0 28px rgba(124,92,255,.28),0 18px 30px -16px rgba(0,0,0,.7);}
+@keyframes holoShift{to{background-position:300% 0;}}
+.font-option{font-weight:700;}
+.preview-switch{
+  display:inline-flex;gap:4px;padding:4px;border-radius:999px;
+  background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.16);
+}
+.preview-switch button{border:0;background:transparent;color:inherit;padding:6px 10px;border-radius:999px;cursor:pointer;font-weight:700;font-size:12px;}
+.preview-switch button.active{background:rgba(255,255,255,.18);}
+.preview-frame.desktop-mode{max-width:1180px;margin:0 auto;}
+.preview-frame.mobile-mode{max-width:430px;margin:0 auto;}
+.preview-frame.mobile-mode .profile-shell{min-height:820px;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.3);}
+.swipe-section{margin:18px 0 26px;}
+.swipe-reveal{
+  position:relative;overflow:hidden;border-radius:18px;touch-action:pan-y;
+  border:1px solid color-mix(in srgb,currentColor 18%,transparent);
+  background:color-mix(in srgb,currentColor 8%,transparent);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.swipe-track{display:flex;transition:transform .45s cubic-bezier(.22,1,.36,1);}
+.swipe-panel{min-width:100%;padding:18px;}
+.swipe-front{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;}
+.swipe-front .hint{margin:0;}
+.swipe-dots{text-align:center;font-size:11px;opacity:.6;margin-top:8px;}
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px;border-radius:16px;background:color-mix(in srgb,currentColor 7%,transparent);border:1px solid color-mix(in srgb,currentColor 14%,transparent);}
+.qr-box canvas,.qr-box img{max-width:190px;height:auto;border-radius:8px;background:#fff;padding:8px;}
+.nfc-status{padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--brass) 12%,transparent);font-size:12.5px;line-height:1.45;}
+.profile-picture-shape-square{border-radius:8px!important;}
+.profile-picture-shape-round{border-radius:50%!important;}
+.profile-picture-shape-leaf{border-radius:65% 35% 65% 35% / 45% 55% 45% 55%!important;}
+.profile-picture-shape-squircle{border-radius:28%!important;}
+.vcard-btn{width:100%;justify-content:center;margin-top:10px;}
+@media(max-width:640px){
+  .preview-frame.desktop-mode{max-width:none;}
+  .topbar{padding-left:14px;padding-right:14px;}
+}
+
+/* ================= BUSINESS CARD ================= */
+.cardstage{display:flex; gap:20px; justify-content:center; flex-wrap:wrap; padding:26px 12px; border-radius:14px; background:radial-gradient(ellipse at 50% 25%,#2b2117,#0d0d10 72%);}
+.cardsvg{width:min(240px,44%); min-width:160px; filter:drop-shadow(0 18px 26px rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(201,138,98,.16));}
+.cardsvg svg{display:block; width:100%; height:auto;}
+.cdot{width:14px; height:14px; border-radius:50%; border:1px solid rgba(128,128,128,.45); flex:none;}
+</style>
+</head>
+<body>
+<div class="bg-scene" aria-hidden="true">
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+  <div class="glow glow-c"></div>
+  <div class="ring"></div>
+  <div class="orbit orbit-3"></div>
+  <div class="orbit orbit-2"></div>
+  <div class="orbit orbit-1"></div>
+  <div class="dorbit dorbit-3"><div class="drop"></div></div>
+  <div class="dorbit dorbit-2"><div class="drop"></div></div>
+  <div class="dorbit dorbit-1"><div class="drop"></div></div>
+  <div class="dorbit dorbit-4"><div class="drop"></div></div>
+  <div class="particle-field" id="bgParticles"></div>
+</div>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================= UTILS ============================= */
+const $ = id => document.getElementById(id);
+const STORE_KEY = 'mepage_profiles_v1';      // profiles (kept from earlier versions so nothing is lost)
+const BOOKINGS_KEY = 'tapngo_bookings_v1';
+const META_KEY = 'tapngo_sync_v1';           // per-profile publish info (slug currently live)
+const GH_KEY = 'tapngo_github_v1';           // GitHub connection (this browser only)
+
+const SLUG_CHARS = 'abcdefghijkmnpqrstuvwxyz23456789';
+function shortId(n){ n=n||7; const a=crypto.getRandomValues(new Uint8Array(n)); let s=''; for(const b of a) s+=SLUG_CHARS[b%SLUG_CHARS.length]; return s; }
+const uid = () => Math.random().toString(36).slice(2,9).padEnd(7,'x');
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const debounce = (fn, ms) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'), 2800);
+}
+function copyText(str){
+  const done=()=>toast('Link copied');
+  if(navigator.clipboard) navigator.clipboard.writeText(str).then(done).catch(()=>fallbackCopy(str,done)); else fallbackCopy(str,done);
+}
+function fallbackCopy(str,done){ const ta=document.createElement('textarea'); ta.value=str; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); done(); }
+
+
+/* ---------- requested feature helpers ---------- */
+const UI_THEME_KEY='tapngo_ui_theme_v1';
+function getUiTheme(){
+  try{return localStorage.getItem(UI_THEME_KEY)||'dark';}catch(e){return 'dark';}
+}
+function setUiTheme(theme){
+  document.documentElement.dataset.theme=theme;
+  try{localStorage.setItem(UI_THEME_KEY,theme);}catch(e){}
+  const b=$('darkModeBtn');
+  if(b) b.innerHTML=theme==='dark'?'☀ Light':'☾ Dark';
+}
+function toggleUiTheme(){ setUiTheme(getUiTheme()==='dark'?'light':'dark'); }
+function applySavedUiTheme(){ setUiTheme(getUiTheme()); }
+
+let qrLoaded=false;
+function ensureQrCode(){
+  if(window.QRCode) return Promise.resolve();
+  if(qrLoaded) return new Promise(r=>{const t=setInterval(()=>{if(window.QRCode){clearInterval(t);r();}},50);});
+  qrLoaded=true;
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+    s.onload=()=>resolve(); s.onerror=()=>reject(new Error('QR library failed to load'));
+    document.head.appendChild(s);
+  });
+}
+async function makeProfileQr(targetId,url){
+  const el=$(targetId); if(!el) return;
+  el.innerHTML='<span class="hint">Generating QR code…</span>';
+  try{
+    await ensureQrCode();
+    el.innerHTML='';
+    new QRCode(el,{text:url,width:180,height:180,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  }catch(e){ el.innerHTML='<span class="hint">QR generator could not load. Check your connection.</span>'; }
+}
+function profileVCard(p){
+  const contacts=p.links||[];
+  const get=t=>(contacts.find(x=>x.type===t)||{}).value||'';
+  const name=p.businessName||'Tap & Go Profile';
+  const phone=get('phone'), email=get('email'), site=get('website');
+  return `BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${name.replace(/[\r\n]/g,' ')}\r\nORG:${name.replace(/[\r\n]/g,' ')}\r\n${phone?'TEL;TYPE=WORK:'+phone+'\r\n':''}${email?'EMAIL;TYPE=WORK:'+email+'\r\n':''}${site?'URL:'+linkHref('website',site)+'\r\n':''}${p.tagline?'NOTE:'+p.tagline.replace(/[\r\n]/g,' ')+'\r\n':''}END:VCARD`;
+}
+function downloadPublicVCard(pid){
+  const p=loadAll()[pid];
+  if(p){ downloadVCard(p); return; }
+  const name=document.querySelector('.profile-name')?.textContent||'Tap & Go Contact';
+  const bio=document.querySelector('.profile-bio')?.textContent||'';
+  const blob=new Blob([`BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${name.replace(/[\\r\\n]/g,' ')}\r\nNOTE:${bio.replace(/[\\r\\n]/g,' ')}\r\nEND:VCARD`],{type:'text/vcard;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tap-and-go-contact.vcf'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function downloadPublicVCardData(encoded){
+  try{
+    const binary=decodeURIComponent(escape(atob(encoded)));
+    const blob=new Blob([binary],{type:'text/vcard;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tap-and-go-contact.vcf';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }catch(e){ toast('Could not create the vCard'); }
+}
+function downloadVCard(p){
+  const blob=new Blob([profileVCard(p)],{type:'text/vcard;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(p.businessName||'tap-and-go-contact').replace(/[^\w\-]+/g,'-').toLowerCase()+'.vcf';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+async function writeNfcProfile(p,url){
+  if(!('NDEFReader' in window)){ toast('Web NFC is not supported in this browser. Use Chrome on a compatible Android device over HTTPS.'); return; }
+  try{
+    const ndef=new NDEFReader();
+    await ndef.write({records:[{recordType:'url',data:url}]});
+    toast('Tap & Go card programmed successfully');
+  }catch(e){
+    toast(e.name==='NotAllowedError'?'NFC permission was not granted.':('NFC write failed: '+e.message));
+  }
+}
+function togglePreviewMode(mode){
+  const frame=$('previewFrame'); if(!frame) return;
+  frame.classList.toggle('mobile-mode',mode==='mobile');
+  frame.classList.toggle('desktop-mode',mode!=='mobile');
+  document.querySelectorAll('.preview-switch button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  try{localStorage.setItem('tapngo_preview_mode',mode);}catch(e){}
+}
+function initSwipeReveal(){
+  document.querySelectorAll('.swipe-reveal').forEach(box=>{
+    const track=box.querySelector('.swipe-track'); let sx=0, moved=false;
+    const reveal=on=>{track.style.transform=on?'translateX(-100%)':'translateX(0)';box.dataset.revealed=on?'1':'0';};
+    box.addEventListener('click',e=>{if(!moved && e.target.closest('.swipe-front')) reveal(box.dataset.revealed!=='1');});
+    box.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;moved=false;},{passive:true});
+    box.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientX-sx)>12)moved=true;},{passive:true});
+    box.addEventListener('touchend',e=>{
+      const dx=e.changedTouches[0].clientX-sx;
+      if(dx<-45) reveal(true); else if(dx>45) reveal(false);
+    },{passive:true});
+  });
+}
+
+/* ---------- local storage ---------- */
+function loadAll(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ return {}; } }
+function saveAll(all){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(all)); }catch(e){ toast('Storage is full — try a smaller logo'); } }
+function saveProfile(p){
+  const all=loadAll(); p.updatedAt=Date.now(); all[p.id]=p; saveAll(all);
+  if(getMeta(p.id).published) schedulePublish(p.id);   // keep the live page in sync automatically
+}
+function updateProfile(id, patch){ const p=loadAll()[id]; Object.assign(p, patch); saveProfile(p); return p; }
+function deleteProfileLocal(id){ const all=loadAll(); delete all[id]; saveAll(all); }
+function getMeta(id){ try{ return (JSON.parse(localStorage.getItem(META_KEY))||{})[id]||{}; }catch(e){ return {}; } }
+function setMeta(id, patch){ try{ const all=JSON.parse(localStorage.getItem(META_KEY))||{}; all[id]={...(all[id]||{}), ...patch}; localStorage.setItem(META_KEY, JSON.stringify(all)); }catch(e){} }
+function clearMeta(id){ try{ const all=JSON.parse(localStorage.getItem(META_KEY))||{}; delete all[id]; localStorage.setItem(META_KEY, JSON.stringify(all)); }catch(e){} }
+
+function newProfile(){
+  return {
+    id: uid(), slug: shortId(),
+    businessName:'', tagline:'', bio:'', logoUrl:'',
+    industry:'general',
+    theme:{ primary:'#C8842A', secondary:'#6E4C6B', bg:'#171A21', text:'#FFFFFF', style:'gradient', font:'Inter', fontHead:'Space Grotesk', fontBody:'Inter', textScale:'normal', btn:'soft', shape:'round', photoShape:'round' },
+    links:[], services:[], availability:{ days:[1,2,3,4,5], start:'09:00', end:'17:00', slot:30 },
+    showcase:{ type:'none', videoUrl:'', posterUrl:'', modelUrl:'', caption:'' },
+    alertWebhook:'',
+    locked:false, createdAt:Date.now(), updatedAt:Date.now()
+  };
+}
+
+/* ---------- bookings (visible on the device that received them) ---------- */
+function loadBookings(pid){ try{ return (JSON.parse(localStorage.getItem(BOOKINGS_KEY))||{})[pid]||[]; }catch(e){ return []; } }
+function mutateBookings(fn){ try{ const all=JSON.parse(localStorage.getItem(BOOKINGS_KEY))||{}; fn(all); localStorage.setItem(BOOKINGS_KEY, JSON.stringify(all)); }catch(e){} }
+function saveBookingLocal(pid,b){ mutateBookings(all=>{ (all[pid]=all[pid]||[]).unshift(b); }); }
+function updateBooking(pid,bid,patch){ mutateBookings(all=>{ const b=(all[pid]||[]).find(x=>x.id===bid); if(b) Object.assign(b,patch); }); }
+function removeBooking(pid,bid){ mutateBookings(all=>{ all[pid]=(all[pid]||[]).filter(x=>x.id!==bid); }); }
+
+/* ---------- colour helpers ---------- */
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+function hexToRgb(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join(''); }
+function mixHex(a,b,t){ const A=hexToRgb(a), B=hexToRgb(b); return rgbToHex(A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t); }
+function lum(hex){ const [r,g,b]=hexToRgb(hex).map(v=>{ v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }); return 0.2126*r+0.7152*g+0.0722*b; }
+function readableOn(hex){ return lum(hex)>0.18 ? '#161A20' : '#FFFFFF'; }
+function rgbToHsl(r,g,b){ r/=255; g/=255; b/=255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b); let h=0, s=0; const l=(mx+mn)/2;
+  if(mx!==mn){ const d=mx-mn; s=l>0.5? d/(2-mx-mn) : d/(mx+mn);
+    h = mx===r ? (g-b)/d+(g<b?6:0) : mx===g ? (b-r)/d+2 : (r-g)/d+4; h/=6; } return [h,s,l]; }
+function hslToRgb(h,s,l){ const f=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+  if(s===0){ return [l*255,l*255,l*255]; } const q=l<0.5? l*(1+s) : l+s-l*s, p=2*l-q; return [f(p,q,h+1/3)*255, f(p,q,h)*255, f(p,q,h-1/3)*255]; }
+function rotateHue(hex,deg){ const [r,g,b]=hexToRgb(hex); let [h,s,l]=rgbToHsl(r,g,b); h=(h+deg/360+1)%1; const [R,G,B]=hslToRgb(h,s,l); return rgbToHex(R,G,B); }
+
+/* Pull the main colours out of a logo image (works for uploaded logos; images hosted
+   elsewhere can block pixel access, in which case this rejects). */
+function extractPalette(src){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); img.crossOrigin='anonymous';
+    img.onerror=()=>reject(new Error('load'));
+    img.onload=()=>{
+      try{
+        const S=64, c=document.createElement('canvas'); c.width=S; c.height=S;
+        const ctx=c.getContext('2d',{willReadFrequently:true}); ctx.drawImage(img,0,0,S,S);
+        const d=ctx.getImageData(0,0,S,S).data, buckets={};
+        for(let i=0;i<d.length;i+=4){
+          const r=d[i], g=d[i+1], b=d[i+2], a=d[i+3];
+          if(a<128) continue;
+          if(r>238 && g>238 && b>238) continue;                       // skip white background
+          const key=((r>>4)<<8)|((g>>4)<<4)|(b>>4);
+          const e=buckets[key]||(buckets[key]={n:0,r:0,g:0,b:0}); e.n++; e.r+=r; e.g+=g; e.b+=b;
+        }
+        const list=Object.values(buckets).map(e=>{
+          const r=e.r/e.n, g=e.g/e.n, b=e.b/e.n, [,s,l]=rgbToHsl(r,g,b);
+          return {r,g,b,score:e.n*(0.35+s)*(l<0.08?0.3:1)};             // favour vivid colours over greys
+        }).sort((a,b)=>b.score-a.score);
+        const picked=[];
+        for(const c of list){
+          if(picked.every(p=>Math.hypot(p.r-c.r,p.g-c.g,p.b-c.b)>70)) picked.push(c);
+          if(picked.length>=6) break;
+        }
+        if(!picked.length) return reject(new Error('none'));
+        resolve(picked.map(p=>rgbToHex(p.r,p.g,p.b)));
+      }catch(e){ reject(e); }
+    };
+    img.src=src;
+  });
+}
+function autoTheme(pal, mode){
+  const primary=pal[0], secondary=pal[1]||rotateHue(primary,35);
+  if(mode==='light') return {primary, secondary, bg:mixHex(primary,'#ffffff',0.93), text:'#161A20', style:'solid'};
+  return {primary, secondary, bg:mixHex(primary,'#0c0e13',0.86), text:'#FFFFFF', style:'gradient'};
+}
+
+/* Resize an uploaded photo to a compact square JPEG */
+function resizeImageFile(file,size){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader(); reader.onerror=reject;
+    reader.onload=()=>{
+      const img=new Image(); img.onerror=reject;
+      img.onload=()=>{
+        const c=document.createElement('canvas'); c.width=size; c.height=size;
+        const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
+        const side=Math.min(img.width,img.height);
+        ctx.drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,size,size);
+        resolve(c.toDataURL('image/jpeg',0.88));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ============================= GITHUB AS THE SERVER ============================= */
+/* Each published profile is one small JSON file in the repo: profiles/<slug>.json.
+   Visitors read it straight from GitHub; only the owner (with a token kept in this
+   browser) can write. Lock swaps the file for a stub, delete removes the file. */
+function ghConfig(){ try{ return JSON.parse(localStorage.getItem(GH_KEY))||{}; }catch(e){ return {}; } }
+function ghReady(){ const c=ghConfig(); return !!(c.owner && c.repo && c.token); }
+function detectRepo(){
+  const h=location.hostname;
+  if(!h.endsWith('.github.io')) return null;
+  const owner=h.slice(0,-'.github.io'.length);
+  const seg=location.pathname.split('/').filter(Boolean)[0];
+  return {owner, repo:(seg && !seg.includes('.')) ? seg : owner+'.github.io'};
+}
+async function ghFetch(method, path, body){
+  const c=ghConfig();
+  return fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`, {
+    method, cache:'no-store',
+    headers:{ Authorization:'Bearer '+c.token, Accept:'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json' },
+    body: body?JSON.stringify(body):undefined
+  });
+}
+async function ghErr(res){ let m='HTTP '+res.status; try{ const j=await res.json(); if(j.message) m=j.message; }catch(e){} if(res.status===401) m='token rejected'; return new Error(m); }
+async function ghGetSha(path){
+  const res=await ghFetch('GET',path);
+  if(res.status===404) return null;
+  if(!res.ok) throw await ghErr(res);
+  return (await res.json()).sha;
+}
+async function ghPutJson(path,obj,attempt){
+  attempt=attempt||0;
+  const sha=await ghGetSha(path);
+  const res=await ghFetch('PUT',path,{ message:'Tap&Go: update '+path, content:b64(JSON.stringify(obj)), ...(sha?{sha}:{}) });
+  if((res.status===409||res.status===422) && attempt<2) return ghPutJson(path,obj,attempt+1);
+  if(!res.ok) throw await ghErr(res);
+}
+async function ghDeleteFile(path){
+  const sha=await ghGetSha(path); if(!sha) return;
+  const res=await ghFetch('DELETE',path,{ message:'Tap&Go: remove '+path, sha });
+  if(!res.ok && res.status!==404) throw await ghErr(res);
+}
+async function ghTest(cfg){
+  const res=await fetch(`https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`, {
+    cache:'no-store', headers:{ Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json' } });
+  if(res.status===401) throw new Error('GitHub rejected that token');
+  if(res.status===404) throw new Error("Repo not found — check the name, and that the token can access it");
+  if(!res.ok) throw new Error('GitHub said: HTTP '+res.status);
+  const j=await res.json();
+  if(j.private) throw new Error("This repo is private — visitors couldn't load profiles. Make it public.");
+  if(j.permissions && j.permissions.push===false) throw new Error('This token is read-only — it needs Contents: Read and write');
+}
+
+function publicPayload(p){
+  const base={ v:1, pid:p.id, updatedAt:Date.now() };
+  if(p.locked) return {...base, locked:true};              // locked = public file holds no profile data at all
+  return {...base, locked:false, businessName:p.businessName, tagline:p.tagline, bio:p.bio, logoUrl:p.logoUrl,
+          theme:p.theme, links:p.links, industry:p.industry, services:p.services, availability:p.availability, alertWebhook:p.alertWebhook||'',
+          showcase:p.showcase||{type:'none'}};
+}
+function publicLink(p){ return location.href.split('#')[0] + '#' + p.slug; }
+
+const syncStatus={}, pubTimers={}, pubBusy={}, pubAgain={};
+function setSync(id,state,msg){ syncStatus[id]={state,msg}; const el=$('syncChip'); if(el && el.dataset.pid===id) el.outerHTML=syncChipHtml(id); }
+function syncChipHtml(id){
+  const m=getMeta(id), s=syncStatus[id]||{}, p=loadAll()[id]||{};
+  let label, color;
+  if(!ghReady()) { label='GitHub not connected'; color='var(--muted)'; }
+  else if(s.state==='publishing'||s.state==='pending'){ label='Publishing…'; color='var(--brass)'; }
+  else if(s.state==='error'){ label='Sync failed: '+esc(s.msg||'unknown'); color='var(--danger)'; }
+  else if(m.published){ label = p.locked ? 'Live · locked' : 'Live'; color = p.locked ? 'var(--brass)' : 'var(--teal)'; }
+  else { label='Not published'; color='var(--muted)'; }
+  return `<span id="syncChip" data-pid="${id}" style="font-size:12px; font-weight:700; color:${color};">● ${label}</span>`;
+}
+function schedulePublish(id,delay){
+  if(!ghReady() || !getMeta(id).published) return;
+  setSync(id,'pending');
+  clearTimeout(pubTimers[id]);
+  pubTimers[id]=setTimeout(()=>publishNow(id), delay==null?1500:delay);
+}
+async function publishNow(id){
+  if(pubBusy[id]){ pubAgain[id]=true; return; }
+  pubBusy[id]=true;
+  try{
+    do{
+      pubAgain[id]=false;
+      const p=loadAll()[id]; if(!p) break;
+      setSync(id,'publishing');
+      const meta=getMeta(id);
+      await ghPutJson(`profiles/${p.slug}.json`, publicPayload(p));
+      if(meta.slug && meta.slug!==p.slug) await ghDeleteFile(`profiles/${meta.slug}.json`);   // rotated link: old one dies
+      setMeta(id,{published:true, slug:p.slug});
+      setSync(id,'live');
+    }while(pubAgain[id]);
+  }catch(e){ setSync(id,'error',e.message); }
+  finally{ pubBusy[id]=false; }
+}
+async function unpublish(id){
+  const p=loadAll()[id], meta=getMeta(id);
+  try{
+    clearTimeout(pubTimers[id]);
+    for(const s of new Set([meta.slug, p&&p.slug].filter(Boolean))) await ghDeleteFile(`profiles/${s}.json`);
+    setMeta(id,{published:false, slug:''}); setSync(id,'idle');
+    return true;
+  }catch(e){ toast("Couldn't remove the live page: "+e.message); return false; }
+}
+
+/* ============================= REFERENCE DATA ============================= */
+const THEME_PRESETS=[
+  {name:'Midnight Brass', primary:'#C8842A', secondary:'#6E4C6B', bg:'#171A21', text:'#FFFFFF', style:'gradient'},
+  {name:'Ocean Teal',     primary:'#2F6F6B', secondary:'#0E3B39', bg:'#0E3B39', text:'#FFFFFF', style:'gradient'},
+  {name:'Rose Clay',      primary:'#B3402E', secondary:'#E8A33D', bg:'#2A1815', text:'#FFFFFF', style:'gradient'},
+  {name:'Orchid Dusk',    primary:'#6E4C6B', secondary:'#C8842A', bg:'#241726', text:'#FFFFFF', style:'gradient'},
+  {name:'Paper & Ink',    primary:'#161A20', secondary:'#6B7280', bg:'#F4F2EC', text:'#161A20', style:'solid'},
+  {name:'Sage Studio',    primary:'#3F5B45', secondary:'#8FAE8B', bg:'#EFF2EA', text:'#26301F', style:'solid'},
+  {name:'Slate Mono',     primary:'#2B313D', secondary:'#6B7280', bg:'#EEF1F6', text:'#161A20', style:'solid'},
+  {name:'Golden Hour',    primary:'#E8A33D', secondary:'#B3402E', bg:'#221507', text:'#FFFFFF', style:'gradient'},
+];
+const FONTS={
+  'Inter':"'Inter', system-ui, sans-serif",
+  'Space Grotesk':"'Space Grotesk', system-ui, sans-serif",
+  'Poppins':"'Poppins', system-ui, sans-serif",
+  'Helvetica':"Helvetica, Arial, sans-serif",
+  'Futura':"Futura, 'Trebuchet MS', Arial, sans-serif",
+  'Gotham':"'Gotham', Montserrat, Arial, sans-serif",
+  'Playfair Display':"'Playfair Display', Georgia, serif",
+  'Cormorant Garamond':"'Cormorant Garamond', Georgia, serif",
+  'Georgia':"Georgia, 'Times New Roman', serif",
+};
+const SHAPES={
+  square:'border-radius:8px;',
+  round:'border-radius:24px;',
+  circle:'border-radius:50%;',
+  pill:'border-radius:999px;',
+  leaf:'border-radius:65% 35% 65% 35% / 45% 55% 45% 55%;'
+};
+const TEXT_SCALES={compact:0.9, normal:1, large:1.15};
+const normTheme=t=>{ t=t||{}; const font=t.font||'Inter'; return {font, fontHead:font, fontBody:font, btn:'soft', shape:'round', style:'gradient', textScale:'normal', photoShape:'round', ...t}; };
+
+const LINK_TYPES={
+  facebook:{label:'Facebook', ph:'facebook.com/yourpage', icon:'globe'},
+  instagram:{label:'Instagram', ph:'instagram.com/yourhandle', icon:'camera'},
+  tiktok:{label:'TikTok', ph:'tiktok.com/@yourhandle', icon:'note'},
+  whatsapp:{label:'WhatsApp', ph:'+63 900 000 0000', icon:'chat'},
+  phone:{label:'Phone', ph:'+63 900 000 0000', icon:'phone'},
+  email:{label:'Email', ph:'you@business.com', icon:'mail'},
+  website:{label:'Website', ph:'yourbusiness.com', icon:'globe'},
+  custom:{label:'Other link', ph:'https://…', icon:'link'},
+};
+const ICONS={
+  globe:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 3 2.7 15 0 18M12 3c-2.7 3-2.7 15 0 18"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.4"/><path d="M8 7l1.4-2.4h5.2L16 7"/></svg>',
+  note:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l10-2v13"/><circle cx="7" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 1 1-3.6-6.7L21 4l-1.1 3.9A7.96 7.96 0 0 1 21 12Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h4l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v4c0 1-1 2-2 2A16 16 0 0 1 2 6c0-1 1-2 2-2Z"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg>',
+  link:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 15l6-6M8 13l-2.5 2.5a3.5 3.5 0 0 0 5 5L13 18M16 11l2.5-2.5a3.5 3.5 0 0 0-5-5L11 6"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>',
+  unlock:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 7.4-2.1"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M5 15.5H4.5A1.5 1.5 0 0 1 3 14V4.5A1.5 1.5 0 0 1 4.5 3H14a1.5 1.5 0 0 1 1.5 1.5V5"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M4.6 15a8 8 0 0 0 14.2 2.4M19.4 9A8 8 0 0 0 5.2 6.6"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l.9-3.9L16.5 4.4a1.5 1.5 0 0 1 2.1 0l1 1a1.5 1.5 0 0 1 0 2.1L8 19.1 4 20Z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  play:'<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" stroke="none"><path d="M8 5.5v13l11-6.5-11-6.5Z"/></svg>',
+  cube:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M4.5 7.5 12 12l7.5-4.5M12 12v9"/></svg>',
+};
+const icon=(n,s)=> ICONS[n] ? ICONS[n].replace(/width="17" height="17"/,`width="${s||15}" height="${s||15}"`) : '';
+
+function linkHref(type,value){
+  value=(value||'').trim(); if(!value) return '#';
+  if(type==='phone') return 'tel:'+value.replace(/[^+\d]/g,'');
+  if(type==='whatsapp') return 'https://wa.me/'+value.replace(/[^\d]/g,'');
+  if(type==='email') return value.includes('@') ? 'mailto:'+value : value;
+  if(/^https?:\/\//i.test(value)) return value;
+  return 'https://'+value;
+}
+const INDUSTRY_PRESETS={
+  general:{label:'General / Other', services:[]},
+  salon:{label:'Salon & Beauty', services:[{name:'Haircut',duration:45,price:''},{name:'Hair Color',duration:120,price:''},{name:'Manicure',duration:40,price:''}]},
+  wellness:{label:'Health & Wellness', services:[{name:'Consultation',duration:30,price:''},{name:'Follow-up Visit',duration:20,price:''}]},
+  consulting:{label:'Consulting / Coaching', services:[{name:'Discovery Call',duration:30,price:''},{name:'1:1 Session',duration:60,price:''}]},
+  restaurant:{label:'Restaurant / Catering', services:[{name:'Table Reservation',duration:90,price:''},{name:'Event Catering',duration:180,price:''}]},
+  fitness:{label:'Fitness / Personal Training', services:[{name:'Personal Training',duration:60,price:''},{name:'Group Class',duration:45,price:''}]},
+  home:{label:'Home Services', services:[{name:'Home Visit / Estimate',duration:60,price:''},{name:'Standard Job',duration:120,price:''}]},
+  events:{label:'Events / Photography', services:[{name:'Consultation Call',duration:30,price:''},{name:'Full Booking',duration:240,price:''}]},
+};
+
+/* ============================= ROUTER ============================= */
+let watchTimer=null;
+function resetPublicChrome(){
+  document.documentElement.classList.remove('public');
+  document.documentElement.style.background=''; document.body.style.background='';
+  clearInterval(watchTimer);
+}
+function playEnter(app){ app.classList.add('enter'); clearTimeout(playEnter._t); playEnter._t=setTimeout(()=>app.classList.remove('enter'),1400); }
+/* Fill a .particle-field with randomized falling glitter, colored from the given CSS color values */
+function spawnParticles(container,count,colors){
+  if(!container) return;
+  container.innerHTML='';
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<count;i++){
+    const el=document.createElement('span'); el.className='particle';
+    const size=(Math.random()*3+2).toFixed(1);
+    const dur=(Math.random()*14+16).toFixed(1);
+    const delay=(-Math.random()*dur).toFixed(1);
+    const drift=Math.round(Math.random()*70-35)+'px';
+    const left=(Math.random()*100).toFixed(1)+'%';
+    const op=(Math.random()*.35+.5).toFixed(2);
+    const pc=colors[i%colors.length];
+    el.style.cssText=`left:${left}; width:${size}px; height:${size}px; --drift:${drift}; --op:${op}; --pc:${pc}; animation-duration:${dur}s; animation-delay:${delay}s;`;
+    frag.appendChild(el);
+  }
+  container.appendChild(frag);
+}
+function route(){
+  applySavedUiTheme();
+  resetPublicChrome();
+  const app=$('app'), h=location.hash; let m;
+  playEnter(app);
+  if(h.startsWith('#p=')){                                   // older long-style links still open
+    try{ renderPublicPage(app, JSON.parse(decodeURIComponent(h.slice(3)))); }catch(e){ renderError(app,'This link looks incomplete or corrupted.'); }
+    return;
+  }
+  if((m=h.match(/^#edit\/([\w-]+)$/))){ const p=loadAll()[m[1]]; if(p){ renderEditor(app,p); return; } }
+  else if((m=h.match(/^#preview\/([\w-]+)$/))){ const p=loadAll()[m[1]]; if(p){ renderPublicPage(app,{...p,locked:false,pid:p.id},{preview:true}); return; } }
+  else if(/^#[A-Za-z0-9]{5,16}$/.test(h)){ loadPublic(app,h.slice(1)); return; }
+  renderDashboard(app);
+}
+window.addEventListener('hashchange', route);
+
+/* ============================= TOP BAR / MODALS ============================= */
+function topbar(right){
+  const gh=ghReady();
+  return `<div class="topbar">
+    <div class="brand" onclick="location.hash=''"><div class="mark">T</div><div class="name">Tap&amp;Go</div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" id="darkModeBtn" onclick="toggleUiTheme()">${getUiTheme()==='dark'?'☀ Light':'☾ Dark'}</button>
+      <button class="btn btn-sm" onclick="openGithubSetup()">${gh?'Account ✓':'Sign in'}</button>${right||''}
+    </div></div>`;
+}
+function showModal(inner){
+  let ov=$('modalOv'); if(!ov){ ov=document.createElement('div'); ov.id='modalOv'; ov.className='modal-overlay'; document.body.appendChild(ov); }
+  ov.innerHTML=`<div class="modal">${inner}</div>`; ov.onclick=e=>{ if(e.target===ov) closeModal(); };
+}
+function closeModal(){ const ov=$('modalOv'); if(ov) ov.remove(); }
+function confirmModal(title,text,label,js){
+  showModal(`<h3>${title}</h3><p>${text}</p><div class="acts"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="closeModal(); ${js}">${label}</button></div>`);
+}
+
+function openGithubSetup(){
+  const c=ghConfig(), d=detectRepo()||{};
+  showModal(`
+    <h3>${ghReady()?'Your account':'Sign in with GitHub'}</h3>
+    <p>This is your account: sign in with the same GitHub username, repo and token on any device to pick up all the links you've published. Profiles are saved as small files in your repo — that's also what gives you short links and instant lock/delete. Your token stays in this browser only — never inside the page file.</p>
+    <div class="row2">
+      <div class="field"><label>GitHub username</label><input type="text" id="gh_owner" value="${esc(c.owner||d.owner||'')}" autocapitalize="off"></div>
+      <div class="field"><label>Repository</label><input type="text" id="gh_repo" value="${esc(c.repo||d.repo||'')}" autocapitalize="off"></div>
+    </div>
+    <div class="field"><label>Access token</label><input type="password" id="gh_token" value="${esc(c.token||'')}" placeholder="github_pat_…" autocomplete="off"></div>
+    <p style="font-size:12.5px;">Create one at <b>github.com/settings/personal-access-tokens/new</b> → "Only select repositories" → this repo → permission <b>Contents: Read and write</b>. The repo must be public.</p>
+    <div id="gh_msg" class="hint" style="color:var(--danger); margin:-6px 0 12px;"></div>
+    <div class="acts">
+      ${ghReady()?`<button class="btn btn-ghost btn-danger" onclick="disconnectGithub()">Sign out</button>`:''}
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="gh_save" onclick="saveGithub()">Test &amp; sign in</button>
+    </div>`);
+}
+async function saveGithub(){
+  const cfg={ owner:$('gh_owner').value.trim(), repo:$('gh_repo').value.trim(), token:$('gh_token').value.trim() };
+  const msg=$('gh_msg'), btn=$('gh_save');
+  if(!cfg.owner||!cfg.repo||!cfg.token){ msg.textContent='Fill in all three fields.'; return; }
+  btn.disabled=true; btn.textContent='Testing…'; msg.textContent='';
+  try{ await ghTest(cfg); }catch(e){ msg.textContent=e.message; btn.disabled=false; btn.textContent='Test & sign in'; return; }
+  localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+  closeModal(); toast('Signed in — fetching your links…');
+  const n=await pullFromGithub();
+  toast(n>0?`Signed in — ${n} link${n===1?'':'s'} synced to this device`:'Signed in');
+  route();
+}
+function disconnectGithub(){ localStorage.removeItem(GH_KEY); closeModal(); toast('Signed out of this device'); route(); }
+
+/* Pull every published profile from the repo so a fresh device (or browser) that
+   signs in with the same GitHub account ends up with the same list of links.
+   Only adds profiles this device doesn't already know about — never overwrites
+   an existing local draft or edit. */
+async function pullFromGithub(){
+  if(!ghReady()) return 0;
+  try{
+    const res=await ghFetch('GET','profiles');
+    if(res.status===404) return 0;
+    if(!res.ok) throw await ghErr(res);
+    const files=(await res.json()).filter(f=>f.type==='file' && f.name.endsWith('.json'));
+    const all=loadAll(); let added=0;
+    for(const f of files){
+      try{
+        const r=await fetch(f.download_url,{cache:'no-store'}); if(!r.ok) continue;
+        const data=await r.json();
+        if(!data.pid || data.locked || all[data.pid]) continue;   // skip stubs, and profiles already known here
+        const slug=f.name.replace(/\.json$/,'');
+        all[data.pid]={ id:data.pid, slug, businessName:data.businessName||'', tagline:data.tagline||'', bio:data.bio||'',
+          logoUrl:data.logoUrl||'', industry:data.industry||'general', theme:normTheme(data.theme), links:data.links||[],
+          services:data.services||[], availability:data.availability||{days:[1,2,3,4,5],start:'09:00',end:'17:00',slot:30},
+          showcase:data.showcase||{type:'none',videoUrl:'',posterUrl:'',modelUrl:'',caption:''},
+          alertWebhook:data.alertWebhook||'', locked:false, createdAt:data.updatedAt||Date.now(), updatedAt:data.updatedAt||Date.now() };
+        setMeta(data.pid,{published:true, slug}); added++;
+      }catch(e){ /* skip this one, keep going */ }
+    }
+    if(added) saveAll(all);
+    return added;
+  }catch(e){ toast("Couldn't fetch your links: "+e.message); return 0; }
+}
+
+/* ============================= DASHBOARD ============================= */
+function renderDashboard(app){
+  const profiles=Object.values(loadAll()).sort((a,b)=>b.updatedAt-a.updatedAt);
+  app.innerHTML=topbar()+`<div class="container">
+    <div style="margin-bottom:22px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div><h1 style="font-size:24px;">Your business profiles</h1>
+      <p class="hint">${ghReady()?'Signed in — published links stay tied to your account and sync to any device you sign in on.':'Edited here on this device; sign in to publish and manage links from anywhere.'}</p>
+       <p class="hint" style="margin-top:6px;">Tap &amp; Go corporate strategy: We focus on accessible digital networking, convenient sharing, and flexible brand presentation.</p></div>
+      ${ghReady()?'<button class="btn btn-sm" onclick="syncNow()">'+icon('refresh',13)+' Sync links</button>':''}
+    </div>
+    ${ghReady()?'':`<div class="card" style="margin-bottom:16px;"><div style="font-weight:600; margin-bottom:4px;">Create a free account to publish</div>
+      <p class="hint" style="margin:0 0 12px;">Signing in with GitHub is what makes your links work: it gives you short links, instant lock/delete, and — sign in with the same details on your phone, laptop, anywhere — access to manage every link you've published, from any device. It takes about two minutes.</p>
+      <button class="btn btn-primary btn-sm" onclick="openGithubSetup()">Sign in with GitHub</button></div>`}
+    ${profiles.length?'<div class="grid" id="grid"></div>':`<div class="empty"><div style="font-size:40px; margin-bottom:12px;">✦</div><h2>Create your first profile</h2>
+      <p>Build a branded page with your links and booking info, then share one short link.</p>
+      <button class="btn btn-primary" style="margin-top:18px;" onclick="createProfile()">${icon('plus')} New profile</button></div>`}
+  </div>`;
+  if(!profiles.length) return;
+  $('grid').innerHTML=profiles.map(p=>{
+    const th=normTheme(p.theme), meta=getMeta(p.id);
+    const status = meta.published ? (p.locked?`<span class="pc-status locked">${icon('lock',12)} Locked</span>`:`<span class="pc-status live">● Live</span>`) : `<span class="pc-status draft">○ Draft</span>`;
+    const logo = p.logoUrl?`<img src="${esc(p.logoUrl)}" alt="">`:(p.businessName?esc(p.businessName[0].toUpperCase()):'★');
+    return `<div class="profile-card">
+      <div class="swatch" style="background:linear-gradient(135deg, ${th.primary}, ${th.secondary});"></div>
+      <div class="pc-body"><div class="pc-logo" style="color:${th.primary};">${logo}</div>
+        <div class="pc-name">${esc(p.businessName)||'Untitled profile'}</div>
+        <div class="pc-meta">${esc((INDUSTRY_PRESETS[p.industry]||{}).label||'General')} · ${p.links.length} link${p.links.length===1?'':'s'}</div>${status}</div>
+      <div class="pc-actions">
+        <button class="btn btn-sm" onclick="editorTab='profile'; location.hash='edit/${p.id}'">${icon('edit',13)} Edit</button>
+        ${meta.published?`<button class="btn btn-sm" onclick="copyText(publicLink(loadAll()['${p.id}']))">${icon('copy',13)} Copy link</button>`
+                        :`<button class="btn btn-sm" onclick="editorTab='share'; location.hash='edit/${p.id}'">Publish</button>`}
+        <button class="btn btn-sm btn-ghost" title="Delete profile" onclick="confirmDelete('${p.id}')">${icon('trash',13)}</button>
+      </div></div>`;
+  }).join('')+`<div class="new-card" onclick="createProfile()"><div class="plus">+</div><div>New profile</div></div>`;
+}
+function createProfile(){ const p=newProfile(); saveProfile(p); editorTab='profile'; location.hash='edit/'+p.id; }
+async function syncNow(){ toast('Checking your account…'); const n=await pullFromGithub(); toast(n>0?`${n} link${n===1?'':'s'} added from your account`:'Already up to date'); route(); }
+function confirmDelete(id){
+  const p=loadAll()[id], live=getMeta(id).published;
+  confirmModal('Delete this profile?',
+    `“${esc(p.businessName)||'Untitled profile'}” will be removed from your dashboard${live?' and its live link will stop working right away':''}.`,
+    'Delete', `doDeleteProfile('${id}')`);
+}
+async function doDeleteProfile(id){
+  if(getMeta(id).published){
+    if(!ghReady()){ toast('Connect GitHub first so the live page can be removed too'); return; }
+    if(!(await unpublish(id))) return;
+  }
+  deleteProfileLocal(id); clearMeta(id); toast('Profile deleted'); location.hash=''; route();
+}
+
+/* ============================= EDITOR ============================= */
+let editorTab='profile', paletteTarget='primary';
+function renderEditor(app,p){
+  p=loadAll()[p.id]||p;
+  const tabs=['profile','showcase','links','theme','card','booking','requests','share'];
+  app.innerHTML=topbar(`<button class="btn btn-sm" onclick="window.open(location.href.split('#')[0]+'#preview/${p.id}','_blank')">${icon('eye',13)} Preview</button>
+    <button class="btn btn-sm btn-primary" onclick="location.hash=''">Done</button>`)+`<div class="container">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:4px;"><h1 style="font-size:22px;">${esc(p.businessName)||'Untitled profile'}</h1>${syncChipHtml(p.id)}</div>
+    <p class="hint" style="margin:0 0 18px;">Changes save on this device instantly${getMeta(p.id).published?' and publish to your live link within a couple of seconds':''}.</p>
+    <div class="tabs scroller" id="tabs">${tabs.map(t=>{
+      let label=t[0].toUpperCase()+t.slice(1);
+      if(t==='requests'){ const n=loadBookings(p.id).filter(b=>b.status==='new').length; if(n) label+=` (${n})`; }
+      return `<div class="tab ${editorTab===t?'active':''}" data-tab="${t}">${label}</div>`; }).join('')}</div>
+    <div id="tabBody"></div></div>`;
+  document.querySelectorAll('#tabs .tab').forEach(el=>el.onclick=()=>{ editorTab=el.dataset.tab; playEnter(app); renderEditor(app,p); });
+  const map={profile:tabProfile,showcase:tabShowcase,links:tabLinks,theme:tabTheme,card:tabCard,booking:tabBooking,requests:tabRequests,share:tabShare};
+  $('tabBody').innerHTML=map[editorTab](p);
+  wireTabEvents(p);
+  if(editorTab==='theme') loadPalette(p);
+  if(editorTab==='card'){ wireCard(p); drawCard(p); }
+  if(editorTab==='share' && getMeta(p.id).published) makeProfileQr('shareQr_'+p.id,publicLink(p));
+}
+
+/* ---- Profile tab ---- */
+function tabProfile(p){
+  const preview=p.logoUrl?`<img src="${esc(p.logoUrl)}" style="width:100%; height:100%; object-fit:cover;" alt="">`
+    :`<span style="font-family:var(--font-head); font-weight:700; font-size:22px; color:var(--muted);">${p.businessName?esc(p.businessName[0].toUpperCase()):'★'}</span>`;
+  return `<div class="card">
+    <div class="field"><label>Business name</label><input type="text" id="f_name" value="${esc(p.businessName)}" placeholder="e.g. Bloom Hair Studio"></div>
+    <div class="field"><label>Tagline</label><input type="text" id="f_tag" value="${esc(p.tagline)}" placeholder="A short line under your name"></div>
+    <div class="field"><label>Bio</label><textarea id="f_bio" placeholder="Tell visitors what you do">${esc(p.bio)}</textarea></div>
+    <div class="field"><label>Logo</label>
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+        <div class="profile-picture-shape-${esc(normTheme(p.theme).photoShape||'round')}" style="width:64px; height:64px; overflow:hidden; background:var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0;">${preview}</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label class="btn btn-sm" style="cursor:pointer; width:fit-content;">Upload photo<input type="file" id="f_logo_file" accept="image/jpeg,image/png,image/webp" style="display:none;"></label>
+          ${p.logoUrl?`<button class="btn btn-sm btn-ghost btn-danger" id="f_logo_remove" type="button">Remove logo</button>`:''}
+        </div></div>
+      <div id="logoUploadStatus" class="hint"></div></div>
+    <div class="field"><label>Or paste an image link <span style="font-weight:400;">(optional)</span></label>
+      <input type="url" id="f_logo" value="${p.logoUrl&&p.logoUrl.startsWith('data:')?'':esc(p.logoUrl)}" placeholder="https://…/logo.png"></div>
+    <div class="hint">Uploaded photos are resized to a small square automatically. Tip: upload (rather than link) if you want the Theme tab to pull colors from your logo.</div>
+    <div class="subhead">Profile picture shape</div>
+    <div class="addbar" style="margin:0;">${[['square','Square'],['round','Rounded'],['circle','Circle'],['leaf','Leaf'],['pill','Pill']].map(([v,l])=>`<div class="chip ${(normTheme(p.theme).photoShape||'round')===v?'selected':''}" data-photo-shape="${v}">${l}</div>`).join('')}</div>
+  </div>
+  <div class="card"><label style="display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:10px;">Industry</label>
+    <select class="plain" id="f_industry">${Object.entries(INDUSTRY_PRESETS).map(([k,v])=>`<option value="${k}" ${p.industry===k?'selected':''}>${v.label}</option>`).join('')}</select>
+    <div class="hint">Sets suggested services on the Booking tab. You can still edit them freely.</div></div>`;
+}
+
+/* ---- Showcase (product video / 3D model) ---- */
+let mvLoaded=false;
+function ensureModelViewer(){
+  if(mvLoaded) return; mvLoaded=true;
+  const s=document.createElement('script'); s.type='module'; s.src='https://unpkg.com/@google/model-viewer@3/dist/model-viewer.min.js';
+  document.head.appendChild(s);
+}
+function videoEmbedHtml(url,poster){
+  url=(url||'').trim(); if(!url) return '';
+  let m;
+  if((m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/))) 
+    return `<div class="sc-frame"><iframe src="https://www.youtube.com/embed/${m[1]}" title="Showcase video" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+  if((m=url.match(/vimeo\.com\/(\d+)/)))
+    return `<div class="sc-frame"><iframe src="https://player.vimeo.com/video/${m[1]}" title="Showcase video" frameborder="0" allow="autoplay; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+  if(/\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url))
+    return `<div class="sc-frame"><video src="${esc(url)}" ${poster?`poster="${esc(poster)}"`:''} controls playsinline preload="metadata"></video></div>`;
+  return `<a class="sc-linkout" href="${esc(url)}" target="_blank" rel="noopener">${icon('play',15)} Watch video</a>`;
+}
+function modelEmbedHtml(url){
+  url=(url||'').trim(); if(!url) return '';
+  ensureModelViewer();
+  return `<div class="sc-frame sc-3d"><model-viewer src="${esc(url)}" camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="16deg" shadow-intensity="1.1" exposure="1.05" environment-image="neutral" interaction-prompt="none" style="width:100%; height:100%; background:transparent;"></model-viewer></div>`;
+}
+function showcaseHtml(sc){
+  if(!sc||sc.type==='none') return '';
+  const body = sc.type==='video' ? videoEmbedHtml(sc.videoUrl,sc.posterUrl) : sc.type==='model3d' ? modelEmbedHtml(sc.modelUrl) : '';
+  if(!body) return '';
+  return `<div class="showcase">${body}${sc.caption?`<div class="sc-caption">${esc(sc.caption)}</div>`:''}</div>`;
+}
+function tabShowcase(p){
+  const sc=p.showcase||{type:'none',videoUrl:'',posterUrl:'',modelUrl:'',caption:''};
+  const types=[['none','No showcase',''],['video','Video','play'],['model3d','3D model','cube']];
+  return `<div class="card">
+    <div style="font-weight:600; margin-bottom:4px;">Product / service showcase</div>
+    <p class="hint" style="margin:0 0 14px;">Give visitors something to look at right under your name — a short video of your service, or a 3D model of your product they can spin around.</p>
+    <div class="addbar" id="scTypePicker" style="margin:0 0 18px;">${types.map(([k,l,ic])=>`<div class="chip ${sc.type===k?'selected':''}" data-sctype="${k}">${ic?icon(ic,13):''} ${l}</div>`).join('')}</div>
+    <div id="scFields">${scFieldsHtml(sc)}</div>
+  </div>`;
+}
+function scFieldsHtml(sc){
+  if(sc.type==='video') return `
+    <div class="field"><label>Video link</label><input type="url" id="sc_video" value="${esc(sc.videoUrl)}" placeholder="YouTube, Vimeo, or a direct .mp4 link"></div>
+    <div class="field"><label>Cover image link <span style="font-weight:400;">(optional)</span></label><input type="url" id="sc_poster" value="${esc(sc.posterUrl)}" placeholder="https://…/thumbnail.jpg"></div>
+    <div class="field"><label>Caption <span style="font-weight:400;">(optional)</span></label><input type="text" id="sc_caption" value="${esc(sc.caption)}" placeholder="e.g. See the service in action"></div>
+    <div class="hint">Paste a YouTube or Vimeo link and it embeds automatically — or link straight to an .mp4/.webm file for a clean, lightweight preview.</div>
+    <div id="scPreview">${scPreviewHtml(sc)}</div>`;
+  if(sc.type==='model3d') return `
+    <div class="field"><label>3D model link (.glb or .gltf)</label><input type="url" id="sc_model" value="${esc(sc.modelUrl)}" placeholder="https://…/product.glb"></div>
+    <div class="field"><label>Caption <span style="font-weight:400;">(optional)</span></label><input type="text" id="sc_caption" value="${esc(sc.caption)}" placeholder="e.g. Rotate to see every angle"></div>
+    <div class="hint">Export a .glb from your 3D software, or a marketplace like Sketchfab, and host it anywhere public — then paste the direct link here.</div>
+    <div id="scPreview">${scPreviewHtml(sc)}</div>`;
+  return `<p class="hint">No showcase — visitors just see your links and bio.</p>`;
+}
+function scPreviewHtml(sc){
+  const html=showcaseHtml(sc);
+  return html ? `<div class="subhead" style="margin-top:20px;">Preview</div>${html}` : '';
+}
+
+/* ---- Links tab ---- */
+function tabLinks(p){
+  const rows=p.links.map((l,i)=>{ const m=LINK_TYPES[l.type]||LINK_TYPES.custom;
+    return `<div class="item-row"><div class="ic">${icon(m.icon,17)}</div>
+      <div class="info"><div class="t1">${esc(l.label||m.label)}</div><div class="t2">${esc(l.value)}</div></div>
+      <div class="acts"><button class="icon-btn" title="Edit" onclick="editLink('${p.id}',${i})">${icon('edit')}</button>
+      <button class="icon-btn" title="Remove" onclick="removeLink('${p.id}',${i})">${icon('trash')}</button></div></div>`; }).join('');
+  const chips=Object.entries(LINK_TYPES).map(([k,v])=>`<div class="chip" onclick="editLink('${p.id}',-1,'${k}')">${icon(v.icon,14)} ${v.label}</div>`).join('');
+  return `<div class="card"><div style="font-weight:600; margin-bottom:4px;">Your links</div>
+    <p class="hint" style="margin:0 0 14px;">Manage each one individually — edit or remove anytime.</p>
+    ${rows||'<p class="hint">No links yet. Add one below.</p>'}<div class="addbar">${chips}</div></div>`;
+}
+function editLink(pid,idx,presetType){
+  const p=loadAll()[pid], ex=idx>=0?p.links[idx]:{type:presetType||'website',label:'',value:''}, m=LINK_TYPES[ex.type]||LINK_TYPES.custom;
+  showModal(`<h3>${idx>=0?'Edit':'Add'} ${m.label}</h3>
+    <div class="field" style="margin-top:14px;"><label>Type</label><select id="m_type">${Object.entries(LINK_TYPES).map(([k,v])=>`<option value="${k}" ${ex.type===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
+    <div class="field"><label>Display label <span style="font-weight:400;">(optional)</span></label><input type="text" id="m_label" value="${esc(ex.label)}" placeholder="${m.label}"></div>
+    <div class="field"><label>Value</label><input type="text" id="m_value" value="${esc(ex.value)}" placeholder="${m.ph}"></div>
+    <div class="acts"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveLink('${pid}',${idx})">Save</button></div>`);
+}
+function saveLink(pid,idx){
+  const type=$('m_type').value, label=$('m_label').value.trim(), value=$('m_value').value.trim();
+  if(!value){ toast('Add a value first'); return; }
+  const p=loadAll()[pid], item={id:idx>=0?p.links[idx].id:uid(), type, label, value};
+  if(idx>=0) p.links[idx]=item; else p.links.push(item);
+  saveProfile(p); closeModal(); renderEditor($('app'),p);
+}
+function removeLink(pid,idx){ const p=loadAll()[pid]; p.links.splice(idx,1); saveProfile(p); renderEditor($('app'),p); }
+
+/* ---- Theme tab ---- */
+function linkButtonHtml(l,th,mini){
+  const m=LINK_TYPES[l.type]||LINK_TYPES.custom, r=SHAPES[th.shape]||SHAPES.round, accInk=readableOn(th.primary);
+  let box, chip;
+  if(th.btn==='solid'){ box=`background:${th.primary}; color:${accInk}; border:1.5px solid ${th.primary};`; chip=`background:color-mix(in srgb, currentColor 18%, transparent); color:inherit;`; }
+  else if(th.btn==='outline'){ box=`background:transparent; color:${th.text}; border:1.5px solid ${th.text};`; chip=`background:${th.primary}; color:${accInk};`; }
+  else { box=`background:color-mix(in srgb, ${th.text} 12%, transparent); color:${th.text}; border:1.5px solid color-mix(in srgb, ${th.text} 16%, transparent);`; chip=`background:${th.primary}; color:${accInk};`; }
+  const inner=`<span class="ic" style="${chip}">${icon(m.icon,17)}</span><span>${esc(l.label)||m.label}</span>`;
+  return mini ? `<div class="link-btn" style="${box} border-radius:${r};">${inner}</div>`
+              : `<a class="link-btn" style="${box} border-radius:${r};" href="${esc(linkHref(l.type,l.value))}" target="_blank" rel="noopener">${inner}</a>`;
+}
+function shellStyle(th){
+  const bg=th.style==='gradient'?`linear-gradient(160deg, ${th.bg}, ${mixHex(th.bg,th.primary,0.3)})`:th.bg;
+  const scale=TEXT_SCALES[th.textScale]||1;
+  return `background:${bg}; color:${th.text}; font-family:${FONTS[th.fontBody||th.font]||FONTS.Inter}; --font-head:${FONTS[th.fontHead||th.font]||FONTS.Inter}; --tsize:${scale}; --acc:${th.primary}; --acc2:${th.secondary||th.primary}; --acc-ink:${readableOn(th.primary)};`;
+}
+function miniPreview(p){
+  const th=normTheme(p.theme), links=p.links.length?p.links.slice(0,3):[{type:'instagram',label:'',value:'x'},{type:'whatsapp',label:'',value:'x'}];
+  const logo=p.logoUrl?`<img src="${esc(p.logoUrl)}" alt="">`:(p.businessName?esc(p.businessName[0].toUpperCase()):'★');
+  return `<div class="mini" style="${shellStyle(th)}">
+    <div class="profile-hero mini"><div class="profile-logo profile-picture-shape-${esc(th.photoShape||'round')}" style="background:color-mix(in srgb, ${th.text} 14%, transparent); color:${th.text};">${logo}</div>
+      <div class="profile-name">${esc(p.businessName)||'Your business'}</div>${p.tagline?`<div class="profile-tagline" style="font-size:13px;">${esc(p.tagline)}</div>`:''}</div>
+    <div class="profile-body"><div class="link-list">${links.map(l=>linkButtonHtml(l,th,true)).join('')}</div></div></div>`;
+}
+function tabTheme(p){
+  const th=normTheme(p.theme), hasLogo=!!p.logoUrl;
+  const colorRow=(id,label,val)=>`<div class="color-row"><input type="color" id="c_${id}" value="${val}"><div class="lbl">${label}</div><input class="hex" type="text" id="h_${id}" value="${val}" maxlength="7" spellcheck="false"></div>`;
+  return `<div id="themePreview">${miniPreview(p)}</div>
+  <div class="card"><div style="font-weight:600; margin-bottom:4px;">Colors from your logo</div>
+    ${hasLogo?`<p class="hint" style="margin:0 0 12px;">One click builds a full theme from your logo — then tweak anything by hand below.</p>
+      <div class="addbar" style="margin:0 0 4px;"><button class="btn btn-sm btn-primary" id="btn_auto_dark">Dark theme from logo</button><button class="btn btn-sm" id="btn_auto_light">Light theme from logo</button></div>
+      <div class="subhead">Logo colors — pick one, then choose where it goes</div>
+      <div id="paletteRow" class="addbar" style="margin:0 0 12px;"><span class="hint">Reading logo…</span></div>
+      <div class="addbar" style="margin:0;">${[['primary','Accent'],['secondary','Secondary'],['bg','Background'],['text','Text']].map(([k,l])=>`<div class="chip ${paletteTarget===k?'selected':''}" data-target="${k}">${l}</div>`).join('')}</div>`
+    :`<p class="hint" style="margin:0;">Upload a logo in the Profile tab and this section will suggest a theme from its colors.</p>`}
+  </div>
+  <div class="card"><div style="font-weight:600; margin-bottom:14px;">Presets</div><div class="theme-grid">
+    ${THEME_PRESETS.map(t=>`<div class="theme-swatch holo ${th.primary===t.primary&&th.bg===t.bg?'selected':''}" style="background:linear-gradient(135deg, ${t.bg}, ${t.primary});" onclick="applyPreset('${p.id}','${t.name.replace(/'/g,"\\'")}')"><span>${t.name}</span></div>`).join('')}</div></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:14px;">Colors — by hand</div>
+    ${colorRow('primary','Accent color',th.primary)}${colorRow('secondary','Secondary color',th.secondary)}${colorRow('bg','Background',th.bg)}${colorRow('text','Text color',th.text)}
+    <div class="subhead">Background style</div>
+    <div class="addbar" style="margin:0;">${['gradient','solid'].map(s=>`<div class="chip ${th.style===s?'selected':''}" data-opt="style" data-val="${s}">${s[0].toUpperCase()+s.slice(1)}</div>`).join('')}</div>
+    <div class="subhead">Heading font <span style="font-weight:400; text-transform:none; letter-spacing:0;">— business name, section titles</span></div>
+    <div class="addbar" style="margin:0 0 10px;">${Object.keys(FONTS).map(f=>`<div class="chip ${(th.fontHead||th.font)===f?'selected':''}" data-opt="fontHead" data-val="${f}" style="font-family:${FONTS[f]};">${f}</div>`).join('')}</div>
+    <div class="subhead">Body font <span style="font-weight:400; text-transform:none; letter-spacing:0;">— bio, links, booking form</span></div>
+    <div class="addbar" style="margin:0 0 10px;">${Object.keys(FONTS).map(f=>`<div class="chip ${(th.fontBody||th.font)===f?'selected':''}" data-opt="fontBody" data-val="${f}" style="font-family:${FONTS[f]};">${f}</div>`).join('')}</div>
+    <div class="subhead">Text size</div>
+    <div class="addbar" style="margin:0;">${[['compact','Compact'],['normal','Normal'],['large','Large']].map(([v,l])=>`<div class="chip ${(th.textScale||'normal')===v?'selected':''}" data-opt="textScale" data-val="${v}">${l}</div>`).join('')}</div>
+    <div class="subhead">Link buttons</div>
+    <div class="addbar" style="margin:0 0 10px;">${[['soft','Soft'],['solid','Solid'],['outline','Outline']].map(([v,l])=>`<div class="chip ${th.btn===v?'selected':''}" data-opt="btn" data-val="${v}">${l}</div>`).join('')}</div>
+    <div class="addbar" style="margin:0;">${[['square','Square'],['round','Rounded'],['circle','Circle'],['leaf','Leaf'],['pill','Pill']].map(([v,l])=>`<div class="chip ${th.shape===v?'selected':''}" data-opt="shape" data-val="${v}">${l}</div>`).join('')}</div>
+  </div>`;
+}
+function setTheme(pid,patch){ const p=loadAll()[pid]; p.theme={...normTheme(p.theme), ...patch}; saveProfile(p); return p; }
+function applyPreset(pid,name){ const t=THEME_PRESETS.find(x=>x.name===name); const {name:_n, ...vals}=t; renderEditor($('app'), setTheme(pid,vals)); }
+async function loadPalette(p){
+  const row=$('paletteRow'); if(!row) return;
+  try{
+    const pal=await extractPalette(p.logoUrl);
+    row.innerHTML=pal.map(c=>`<div class="pal" data-c="${c}" title="${c}" style="background:${c};"></div>`).join('');
+    row.querySelectorAll('.pal').forEach(el=>el.onclick=()=>{ renderEditor($('app'), setTheme(p.id,{[paletteTarget]:el.dataset.c})); });
+    const go=mode=>renderEditor($('app'), setTheme(p.id, autoTheme(pal,mode)));
+    if($('btn_auto_dark')) $('btn_auto_dark').onclick=()=>go('dark');
+    if($('btn_auto_light')) $('btn_auto_light').onclick=()=>go('light');
+  }catch(e){
+    row.innerHTML=`<span class="hint">${e.message==='none'?"This logo is mostly white/transparent, so there's no color to pull — set colors by hand below.":"Couldn't read colors from this image (photos hosted elsewhere block it). Upload the logo from your device instead, or set colors by hand below."}</span>`;
+    ['btn_auto_dark','btn_auto_light'].forEach(id=>{ const b=$(id); if(b) b.disabled=true; });
+  }
+}
+
+/* ---- Booking tab ---- */
+function tabBooking(p){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const rows=p.services.map((s,i)=>`<div class="item-row"><div class="ic">${icon('note',17)}</div>
+    <div class="info"><div class="t1">${esc(s.name)}</div><div class="t2">${s.duration} min${s.price?' · '+esc(s.price):''}</div></div>
+    <div class="acts"><button class="icon-btn" onclick="editService('${p.id}',${i})">${icon('edit')}</button><button class="icon-btn" onclick="removeService('${p.id}',${i})">${icon('trash')}</button></div></div>`).join('');
+  return `<div class="card"><div style="font-weight:600; margin-bottom:4px;">Services</div>
+    <p class="hint" style="margin:0 0 14px;">Shown as bookable options on your public page. Leave empty to hide booking entirely.</p>
+    ${rows||'<p class="hint">No services yet.</p>'}<div class="addbar"><div class="chip" onclick="editService('${p.id}',-1)">${icon('plus',13)} Add service</div></div></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:14px;">Availability</div>
+    <div style="font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px;">Days open</div>
+    <div class="addbar" style="margin:0 0 16px;" id="dayPicker">${days.map((d,i)=>`<div class="chip ${p.availability.days.includes(i)?'selected':''}" data-day="${i}">${d}</div>`).join('')}</div>
+    <div class="row2"><div class="field"><label>Opens at</label><input type="time" id="a_start" value="${p.availability.start}"></div>
+      <div class="field"><label>Closes at</label><input type="time" id="a_end" value="${p.availability.end}"></div></div>
+    <div class="field"><label>Slot length</label><select id="a_slot">${[15,20,30,45,60,90].map(m=>`<option value="${m}" ${p.availability.slot===m?'selected':''}>${m} min</option>`).join('')}</select></div></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:4px;">Instant appointment alerts</div>
+    <p class="hint" style="margin:0 0 12px;">Without this, a booking only reaches you if the customer finishes sending the WhatsApp/email message their request opens — easy to skip, and it needs an app they may not have. Add a free <a href="https://formspree.io" target="_blank" rel="noopener" style="color:var(--brass); font-weight:600;">Formspree</a> form endpoint here and every request is emailed to you automatically, the moment anyone submits it — no WhatsApp or email app needed on their end, and it reaches you on whatever device you check next.</p>
+    <div class="field"><label>Formspree endpoint (or any URL that accepts a JSON POST)</label><input type="url" id="f_webhook" value="${esc(p.alertWebhook||'')}" placeholder="https://formspree.io/f/xxxxxxx"></div>
+    <p class="hint" style="margin:0;">Free at formspree.io: sign up, create a form, and paste the endpoint it gives you (starts with <code>https://formspree.io/f/</code>). Takes about a minute.</p></div>`;
+}
+function editService(pid,idx){
+  const p=loadAll()[pid], s=idx>=0?p.services[idx]:{name:'',duration:30,price:''};
+  showModal(`<h3>${idx>=0?'Edit':'Add'} service</h3>
+    <div class="field" style="margin-top:14px;"><label>Service name</label><input type="text" id="s_name" value="${esc(s.name)}" placeholder="e.g. Haircut"></div>
+    <div class="row2"><div class="field"><label>Duration (min)</label><input type="number" id="s_dur" value="${s.duration}" min="5" step="5"></div>
+      <div class="field"><label>Price <span style="font-weight:400;">(optional)</span></label><input type="text" id="s_price" value="${esc(s.price)}" placeholder="e.g. ₱800"></div></div>
+    <div class="acts"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveService('${pid}',${idx})">Save</button></div>`);
+}
+function saveService(pid,idx){
+  const name=$('s_name').value.trim(), duration=parseInt($('s_dur').value,10)||30, price=$('s_price').value.trim();
+  if(!name){ toast('Name the service first'); return; }
+  const p=loadAll()[pid], item={id:idx>=0?p.services[idx].id:uid(), name, duration, price};
+  if(idx>=0) p.services[idx]=item; else p.services.push(item);
+  saveProfile(p); closeModal(); renderEditor($('app'),p);
+}
+function removeService(pid,idx){ const p=loadAll()[pid]; p.services.splice(idx,1); saveProfile(p); renderEditor($('app'),p); }
+
+/* ---- Requests tab ---- */
+function fmtWhen(b){ if(!b.date) return 'No date given'; const d=new Date(b.date+'T00:00:00');
+  return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})+(b.time?' · '+b.time:''); }
+function tabRequests(p){
+  const list=loadBookings(p.id), col={new:'var(--brass)',confirmed:'var(--teal)',declined:'var(--muted)'};
+  const rows=list.map(b=>`<div class="item-row" style="align-items:flex-start;"><div class="ic">${icon('note',17)}</div>
+    <div class="info"><div class="t1">${esc(b.name)} · ${esc(b.service)||'Appointment'}</div>
+      <div class="t2" style="white-space:normal;">${fmtWhen(b)}${b.duration?` (${b.duration} min)`:''}${b.price?' · '+esc(b.price):''}<br>Contact: ${esc(b.contact)}${b.notes?`<br>Note: ${esc(b.notes)}`:''}<br>
+      <span style="opacity:.7;">Requested ${new Date(b.createdAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>
+      <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:${col[b.status]||'var(--muted)'}; margin-top:6px;">${b.status}</div></div>
+    <div class="acts" style="flex-direction:column; gap:6px;">
+      ${b.status!=='confirmed'?`<button class="btn btn-sm btn-primary" onclick="respondBooking('${p.id}','${b.id}','confirmed')">Confirm</button>`:''}
+      ${b.status!=='declined'?`<button class="btn btn-sm btn-ghost" onclick="respondBooking('${p.id}','${b.id}','declined')">Decline</button>`:''}
+      <button class="icon-btn" title="Remove" onclick="removeBooking('${p.id}','${b.id}'); renderEditor($('app'),loadAll()['${p.id}'])">${icon('trash')}</button></div></div>`).join('');
+  return `<div class="card"><div style="font-weight:600; margin-bottom:4px;">Appointment requests</div>
+    <p class="hint" style="margin:0 0 10px;">Full details for each request. <b>Confirm</b> or <b>Decline</b> opens a ready-to-send reply to the customer (email if they gave one, WhatsApp otherwise) — you press send.</p>
+    <p class="hint" style="margin:0 0 14px;">${p.alertWebhook?'Instant alerts are on — every request is emailed to you the moment it\'s sent, on any device. ':'Instant alerts aren\'t set up yet (see the Booking tab) — for now, requests reach you only if the customer finishes sending the WhatsApp/email message their booking opens. '}This list itself only fills in on the device that happened to be open when the request came in.</p>
+    ${rows||'<p class="hint">No requests captured on this device yet.</p>'}</div>`;
+}
+const isEmailAddr=s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s||'').trim());
+function respondBooking(pid,bid,kind){
+  const p=loadAll()[pid], b=loadBookings(pid).find(x=>x.id===bid);
+  updateBooking(pid,bid,{status:kind});
+  if(b) notifyCustomer(p,b,kind);
+  renderEditor($('app'),loadAll()[pid]);
+}
+function notifyCustomer(p,b,kind){
+  const when=b.date?`${b.date}${b.time?' at '+b.time:''}`:'your requested time';
+  const subject=kind==='confirmed'?`Your appointment with ${p.businessName||'us'} is confirmed`:`About your appointment request with ${p.businessName||'us'}`;
+  const body=kind==='confirmed'
+    ?`Hi ${b.name},\n\nYour appointment is confirmed:\n\nService: ${b.service||'—'}\nWhen: ${when}${b.duration?`\nDuration: ${b.duration} min`:''}${b.price?`\nPrice: ${b.price}`:''}\n\nSee you then!\n${p.businessName||''}`
+    :`Hi ${b.name},\n\nThanks for asking about "${b.service||'an appointment'}". Unfortunately we can't confirm ${when} — please reach out and we'll find another time.\n\n${p.businessName||''}`;
+  if(isEmailAddr(b.contact)){ window.open('mailto:'+b.contact+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body),'_blank'); toast('Reply email ready to send'); }
+  else{ const d=(b.contact||'').replace(/[^\d]/g,''); if(d.length>=8){ window.open('https://wa.me/'+d+'?text='+encodeURIComponent(body),'_blank'); toast('Reply message ready to send'); }
+    else{ navigator.clipboard&&navigator.clipboard.writeText(body); toast("Reply copied — the contact wasn't a clear email or phone number"); } }
+}
+
+/* ---- Share tab ---- */
+function tabShare(p){
+  const meta=getMeta(p.id);
+  if(!ghReady()) return `<div class="card"><div style="font-weight:600; margin-bottom:6px;">Connect GitHub to get your link</div>
+    <p class="hint" style="margin:0 0 14px;">Your link is a short address (like <b>${esc(location.href.split('#')[0])}#${esc(p.slug)}</b>) and your profile is stored as a small file in your GitHub repo. That's also what makes lock and delete work instantly.</p>
+    <button class="btn btn-primary btn-sm" onclick="openGithubSetup()">Connect GitHub</button></div>`;
+  if(!meta.published) return `<div class="card"><div style="font-weight:600; margin-bottom:6px;">Publish this profile</div>
+    <p class="hint" style="margin:0 0 14px;">This creates your short link. After that, every edit you make here goes live automatically.</p>
+    <button class="btn btn-primary btn-sm" onclick="doPublish('${p.id}')">Publish &amp; get link</button></div>`;
+  const link=publicLink(p);
+  return `${p.locked?`<div class="status-banner locked">${icon('lock',15)} Locked — visitors see “this link is locked” and no profile data is public.</div>`:''}
+  <div class="card"><div style="font-weight:600; margin-bottom:10px;">Your link</div>
+    <div class="link-box"><input readonly value="${esc(link)}" onclick="this.select()"><button class="icon-btn" title="Copy" onclick="copyText(publicLink(loadAll()['${p.id}']))">${icon('copy')}</button></div>
+    <p class="hint" style="margin-top:10px;">Anyone with this link can open your page — no account needed. Edits go live within a couple of seconds and appear for visitors within about 20 seconds.</p>
+    <div class="addbar">
+      <button class="btn btn-sm" onclick="toggleLock('${p.id}')">${icon(p.locked?'unlock':'lock',13)} ${p.locked?'Unlock link':'Lock link'}</button>
+      <button class="btn btn-sm" onclick="confirmModal('Generate a new link?','Your current link stops working right away, and everyone who has it will need the new one.','Generate new link',&quot;regenerateLink('${p.id}')&quot;)">${icon('refresh',13)} New link</button>
+      <button class="btn btn-sm btn-danger" onclick="confirmModal('Delete this link?','The live page is taken down immediately. Your profile stays in your dashboard as a draft and you can publish it again.','Delete link',&quot;deleteLink('${p.id}')&quot;)">${icon('trash',13)} Delete link</button>
+      <button class="btn btn-sm btn-ghost" onclick="publishNow('${p.id}')">Sync now</button>
+    </div></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:10px;">QR code</div>
+    <p class="hint" style="margin:0 0 12px;">Generate a scannable QR code for your Tap &amp; Go profile link.</p>
+    <div class="qr-box"><div id="shareQr_${p.id}"></div><button class="btn btn-sm" onclick="makeProfileQr('shareQr_${p.id}',publicLink(loadAll()['${p.id}']))">Generate / refresh QR</button></div>
+  </div>
+  <div class="card"><div style="font-weight:600; margin-bottom:6px;">Program a physical Tap &amp; Go card</div>
+    <p class="hint" style="margin:0 0 12px;">On a compatible Android browser using HTTPS, bring an NFC card close to the phone and write your public profile link directly to it.</p>
+    <div class="nfc-status" style="margin-bottom:10px;">Web NFC works only where the browser exposes NDEFReader.</div>
+    <button class="btn btn-primary btn-sm" onclick="writeNfcProfile(loadAll()['${p.id}'],publicLink(loadAll()['${p.id}']))">Write profile to NFC card</button>
+  </div>
+  <div class="card"><div style="font-weight:600; margin-bottom:6px;">Good to know</div>
+    <p class="hint" style="margin:0;">Locking replaces the public file with an empty stub, so profile details aren't readable while locked. Since the repo is public, GitHub's file history keeps earlier versions. Don't put anything private in a profile.</p></div>`;
+}
+async function doPublish(id){
+  toast('Publishing…'); await publishNow(id);
+  const s=syncStatus[id]||{}; if(s.state==='error') toast('Publish failed: '+s.msg); else toast('Published — your link is ready');
+  renderEditor($('app'),loadAll()[id]);
+}
+async function toggleLock(id){
+  const p=updateProfile(id,{locked:!loadAll()[id].locked});
+  renderEditor($('app'),p); toast(p.locked?'Locking…':'Unlocking…');
+  clearTimeout(pubTimers[id]); await publishNow(id);
+  const s=syncStatus[id]||{}; toast(s.state==='error'?'Not synced: '+s.msg:(p.locked?'Link locked — live now':'Link unlocked — live now'));
+  renderEditor($('app'),loadAll()[id]);
+}
+async function regenerateLink(id){
+  const p=updateProfile(id,{slug:shortId()});
+  clearTimeout(pubTimers[id]); await publishNow(id);
+  const s=syncStatus[id]||{}; toast(s.state==='error'?'Not synced: '+s.msg:'New link ready — the old one is dead');
+  renderEditor($('app'),loadAll()[id]);
+}
+async function deleteLink(id){
+  if(await unpublish(id)){ toast('Link deleted'); renderEditor($('app'),loadAll()[id]); }
+}
+
+/* ---- wiring ---- */
+function wireTabEvents(p){
+  const bind=(id,key)=>{ const el=$(id); if(el) el.addEventListener('input',debounce(()=>{ updateProfile(p.id,{[key]:el.value}); },300)); };
+  bind('f_name','businessName'); bind('f_tag','tagline'); bind('f_bio','bio'); bind('f_logo','logoUrl'); bind('f_webhook','alertWebhook');
+  const file=$('f_logo_file');
+  if(file) file.addEventListener('change',()=>{
+    const f=file.files&&file.files[0]; if(!f) return; const st=$('logoUploadStatus');
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)){ st.textContent='Please choose a JPEG, PNG or WebP image.'; return; }
+    st.textContent='Processing image…';
+    resizeImageFile(f,240).then(url=>{ renderEditor($('app'),updateProfile(p.id,{logoUrl:url})); toast('Logo updated'); })
+      .catch(()=>{ st.textContent='Could not read that image — try a different file.'; });
+  });
+  const rm=$('f_logo_remove'); if(rm) rm.onclick=()=>renderEditor($('app'),updateProfile(p.id,{logoUrl:''}));
+  const ind=$('f_industry');
+  if(ind) ind.addEventListener('change',()=>{
+    const preset=INDUSTRY_PRESETS[ind.value], cur=loadAll()[p.id], patch={industry:ind.value};
+    if(!cur.services.length && preset.services.length) patch.services=preset.services.map(s=>({...s,id:uid()}));
+    updateProfile(p.id,patch);
+  });
+
+  /* showcase */
+  document.querySelectorAll('#scTypePicker .chip').forEach(chip=>chip.onclick=()=>{
+    const cur=loadAll()[p.id]; cur.showcase={...(cur.showcase||{type:'none',videoUrl:'',posterUrl:'',modelUrl:'',caption:''}), type:chip.dataset.sctype};
+    saveProfile(cur); renderEditor($('app'),cur);
+  });
+  const scRefresh=()=>{ const el=$('scPreview'); if(el) el.innerHTML=scPreviewHtml(loadAll()[p.id].showcase||{type:'none'}); };
+  [['sc_video','videoUrl'],['sc_poster','posterUrl'],['sc_model','modelUrl'],['sc_caption','caption']].forEach(([id,key])=>{
+    const el=$(id); if(!el) return;
+    el.addEventListener('input',debounce(()=>{
+      const cur=loadAll()[p.id]; cur.showcase={...(cur.showcase||{type:'none'}), [key]:el.value.trim()}; saveProfile(cur); scRefresh();
+    },400));
+  });
+
+  /* theme: manual controls */
+  const refreshPreview=()=>{ const el=$('themePreview'); if(el) el.innerHTML=miniPreview(loadAll()[p.id]); };
+  ['primary','secondary','bg','text'].forEach(k=>{
+    const c=$('c_'+k), h=$('h_'+k); if(!c) return;
+    const apply=debounce(v=>{ setTheme(p.id,{[k]:v}); refreshPreview(); },120);
+    c.addEventListener('input',()=>{ h.value=c.value; apply(c.value); });
+    h.addEventListener('input',()=>{ let v=h.value.trim(); if(v && v[0]!=='#') v='#'+v; if(/^#[0-9a-fA-F]{6}$/.test(v)){ c.value=v; apply(v); } });
+  });
+  document.querySelectorAll('[data-opt]').forEach(el=>el.onclick=()=>renderEditor($('app'),setTheme(p.id,{[el.dataset.opt]:el.dataset.val})));
+  document.querySelectorAll('[data-photo-shape]').forEach(el=>el.onclick=()=>renderEditor($('app'),setTheme(p.id,{photoShape:el.dataset.photoShape})));
+  document.querySelectorAll('[data-target]').forEach(el=>el.onclick=()=>{ paletteTarget=el.dataset.target;
+    document.querySelectorAll('[data-target]').forEach(x=>x.classList.toggle('selected',x===el)); });
+
+  /* booking availability */
+  document.querySelectorAll('#dayPicker .chip').forEach(chip=>chip.onclick=()=>{
+    const cur=loadAll()[p.id], d=parseInt(chip.dataset.day,10), s=new Set(cur.availability.days); s.has(d)?s.delete(d):s.add(d);
+    cur.availability.days=[...s].sort(); saveProfile(cur); renderEditor($('app'),cur); });
+  const aS=$('a_start'), aE=$('a_end'), aL=$('a_slot');
+  [aS,aE].forEach(el=>{ if(el) el.addEventListener('input',debounce(()=>{ const c=loadAll()[p.id]; c.availability.start=aS.value; c.availability.end=aE.value; saveProfile(c); },250)); });
+  if(aL) aL.addEventListener('change',()=>{ const c=loadAll()[p.id]; c.availability.slot=parseInt(aL.value,10); saveProfile(c); });
+}
+
+/* ============================= PUBLIC PAGE ============================= */
+function renderError(app,msg){
+  app.innerHTML=`<div class="center-msg"><div class="em">⚠️</div><h2>Something went wrong</h2><p class="hint">${esc(msg)}</p></div>`;
+}
+function renderNotice(app,emoji,title,text){
+  document.documentElement.classList.add('public');
+  document.documentElement.style.background=document.body.style.background='#14171D';
+  app.innerHTML=`<div style="min-height:100vh; background:#14171D; color:#fff; font-family:${FONTS.Inter};"><div class="center-msg" style="margin:0 auto; padding-top:140px;"><div class="em">${emoji}</div><h2>${title}</h2><p style="opacity:.7; line-height:1.5;">${text}</p></div></div>`;
+}
+
+/* Load a published profile from GitHub and keep it fresh while the page is open,
+   so lock / unlock / delete reach people who already have the link. */
+async function fetchPublic(slug){
+  const bust='?t='+Date.now(), repo=detectRepo(), urls=[];
+  if(repo) urls.push(`https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/HEAD/profiles/${slug}.json${bust}`);
+  urls.push(new URL(`profiles/${slug}.json${bust}`, location.href.split('#')[0]).href);
+  for(const u of urls){
+    try{
+      const res=await fetch(u,{cache:'no-store'});
+      if(res.status===404) return {status:'removed'};
+      if(!res.ok) continue;
+      return {status:'ok', data:await res.json()};
+    }catch(e){ /* try next source */ }
+  }
+  return {status:'error'};
+}
+async function loadPublic(app,slug){
+  renderNotice(app,'⏳','Loading…','');
+  let last=null;
+  const tick=async first=>{
+    const r=await fetchPublic(slug);
+    if(r.status==='error'){ if(first) renderNotice(app,'⚠️',"Couldn't load this page","Check your connection and try again."); return; }
+    const sig=r.status==='removed'?'removed':JSON.stringify(r.data);
+    if(sig===last) return; last=sig;
+    if(r.status==='removed') renderNotice(app,'🚫','Page not found','This link is no longer active. The owner may have replaced or removed it.');
+    else if(r.data.locked) renderNotice(app,'🔒','This link is locked','The owner has temporarily turned this page off.');
+    else renderPublicPage(app,r.data);
+  };
+  await tick(true);
+  watchTimer=setInterval(()=>tick(false),20000);
+}
+
+function renderPublicPage(app,p,opts){
+  opts=opts||{};
+  if(p.locked){ renderNotice(app,'🔒','This link is locked','The owner has temporarily turned this page off.'); return; }
+  const th=normTheme(p.theme);
+  document.documentElement.classList.add('public');
+  document.documentElement.style.background=document.body.style.background=th.bg;
+  const logo=p.logoUrl?`<img src="${esc(p.logoUrl)}" alt="${esc(p.businessName)} logo">`:(p.businessName?esc(p.businessName[0].toUpperCase()):'★');
+  const links=(p.links||[]).map(l=>linkButtonHtml(l,th,false)).join('');
+  const hasBooking=(p.services||[]).length>0;
+  const contacts=(p.links||[]).filter(l=>['phone','email','whatsapp','website'].includes(l.type));
+  const contactPanels=contacts.map(l=>`<div style="display:flex;align-items:center;gap:10px;margin:8px 0;"><span class="ic">${icon((LINK_TYPES[l.type]||LINK_TYPES.custom).icon,16)}</span><span>${esc(l.label||LINK_TYPES[l.type].label)}: ${esc(l.value)}</span></div>`).join('');
+  const previewMode=opts.previewMode||(()=>{try{return localStorage.getItem('tapngo_preview_mode')||'mobile';}catch(e){return 'mobile';}})();
+  const previewControls=opts.preview?`<div class="preview-bar"><div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;"><span>Preview</span><div class="preview-switch"><button data-mode="mobile" class="${previewMode==='mobile'?'active':''}" onclick="togglePreviewMode('mobile')">Mobile</button><button data-mode="desktop" class="${previewMode==='desktop'?'active':''}" onclick="togglePreviewMode('desktop')">Desktop</button></div></div></div>`:'';
+  const pictureShape=th.photoShape||'round';
+  app.innerHTML=`${previewControls}
+  <div id="previewFrame" class="preview-frame ${opts.preview&&previewMode==='desktop'?'desktop-mode':'mobile-mode'}">
+  <div class="profile-shell" style="${shellStyle(th)}">
+    <div class="particle-field" id="scParticles" aria-hidden="true"></div>
+    <div class="profile-hero"><div class="profile-logo profile-picture-shape-${esc(pictureShape)}" style="background:color-mix(in srgb, ${th.text} 14%, transparent); color:${th.text};">${logo}</div>
+      <div class="profile-name">${esc(p.businessName)||'Business name'}</div>${p.tagline?`<div class="profile-tagline">${esc(p.tagline)}</div>`:''}</div>
+    <div class="profile-body">
+      ${showcaseHtml(p.showcase)}
+      ${p.bio?`<div class="profile-bio">${esc(p.bio)}</div>`:''}
+      ${links?`<div class="link-list">${links}</div>`:''}
+      ${contacts.length?`<div class="swipe-section"><div class="section-title">Contact details</div><div class="swipe-reveal" data-revealed="0"><div class="swipe-track"><div class="swipe-panel swipe-front"><div><div style="font-weight:700;">Swipe to reveal</div><div class="hint" style="color:inherit;">Swipe left or tap to view contact details.</div></div><span>→</span></div><div class="swipe-panel">${contactPanels}</div></div></div><div class="swipe-dots">← swipe →</div></div>`:''}
+      ${hasBooking?`<div class="section-title">Book an appointment</div><div class="book-card" id="bookCard"></div>`:''}
+      <div class="card glass-card" style="padding:14px;margin-top:18px;">
+        <div style="font-weight:700;margin-bottom:8px;">Save &amp; share</div>
+        <button class="btn vcard-btn" onclick="downloadPublicVCardData('${b64(profileVCard(p))}')">${icon('copy',14)} Download vCard</button>
+      </div>
+      <div class="foot-mark">Made with Tap&amp;Go</div></div></div></div>`;
+  spawnParticles($('scParticles'), window.innerWidth<640?5:10, ['var(--acc)','var(--acc2)',th.text]);
+  if(hasBooking) mountBooking($('bookCard'),p);
+  initSwipeReveal();
+}
+
+/* ---- Booking widget ---- */
+function mountBooking(el,p){
+  const contacts={ waLink:(p.links||[]).find(l=>l.type==='whatsapp'), phoneLink:(p.links||[]).find(l=>l.type==='phone'), emailLink:(p.links||[]).find(l=>l.type==='email') };
+  const state={ serviceId:p.services[0]&&p.services[0].id, date:'', time:'' };
+  const days=p.availability.days, today=()=>{ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+  function slotsFor(ds){
+    if(!ds) return []; const d=new Date(ds+'T00:00:00'); if(!days.includes(d.getDay())) return [];
+    const [sh,sm]=p.availability.start.split(':').map(Number), [eh,em]=p.availability.end.split(':').map(Number);
+    let cur=sh*60+sm; const end=eh*60+em, out=[], now=new Date(), isToday=ds===today(), nowMin=now.getHours()*60+now.getMinutes();
+    while(cur+p.availability.slot<=end){ if(!isToday||cur>nowMin) out.push(cur); cur+=p.availability.slot; } return out;
+  }
+  const fmt=m=>{ const h=Math.floor(m/60), mm=m%60; return `${((h+11)%12)+1}:${String(mm).padStart(2,'0')} ${h>=12?'PM':'AM'}`; };
+  function paint(){
+    const svc=p.services.find(s=>s.id===state.serviceId), slots=slotsFor(state.date);
+    el.innerHTML=`<div class="svc-pick">${p.services.map(s=>`<div class="svc-opt ${s.id===state.serviceId?'selected':''}" data-svc="${esc(s.id)}">${esc(s.name)} · ${s.duration}m</div>`).join('')}</div>
+      <input class="pf-input" type="date" id="bk_date" min="${today()}" value="${state.date}" aria-label="Date">
+      ${state.date?(slots.length?`<div class="slot-grid">${slots.map(m=>`<div class="slot ${m===state.time?'selected':''}" data-slot="${m}">${fmt(m)}</div>`).join('')}</div>`:`<p style="font-size:13px; opacity:.75; margin:4px 0 14px;">No slots on this date — try another day.</p>`):''}
+      <input class="pf-input" id="bk_name" placeholder="Your name">
+      <input class="pf-input" id="bk_contact" placeholder="Email (for a confirmation reply) or phone">
+      <input class="pf-input" id="bk_notes" placeholder="Anything the owner should know (optional)">
+      <button class="book-submit" id="bk_submit">Request appointment</button>`;
+    el.querySelectorAll('.svc-opt').forEach(o=>o.onclick=()=>{ state.serviceId=o.dataset.svc; paint(); });
+    $('bk_date').onchange=e=>{ state.date=e.target.value; state.time=''; paint(); };
+    el.querySelectorAll('.slot').forEach(s=>s.onclick=()=>{ state.time=parseInt(s.dataset.slot,10); paint(); });
+    $('bk_submit').onclick=async()=>{
+      const btn=$('bk_submit');
+      const name=$('bk_name').value.trim(), contact=$('bk_contact').value.trim(), notes=$('bk_notes').value.trim();
+      if(!name||!contact){ toast('Add your name and contact info'); return; }
+      const timeText=state.time!==''?fmt(state.time):'';
+      const booking={ id:uid(), service:svc?svc.name:'', duration:svc?svc.duration:null, price:svc?svc.price:'', date:state.date, time:timeText, name, contact, notes, status:'new', createdAt:Date.now() };
+      saveBookingLocal(p.pid||p.id||'public',booking);
+      btn.disabled=true; btn.textContent='Sending…';
+      const delivered=await sendBookingAlert(p,booking);
+      btn.disabled=false;
+      if(delivered){ btn.textContent='Request sent ✓'; toast('Your request was sent — the owner will reply soon.'); }
+      else{
+        btn.textContent='Request appointment';
+        const msg=`Hi ${p.businessName||''}! I'd like to book "${svc?svc.name:''}"${state.date?` on ${state.date}`:''}${timeText?` at ${timeText}`:''}.\nName: ${name}\nContact: ${contact}${notes?`\nNotes: ${notes}`:''}`;
+        sendBooking(msg,contacts);
+      }
+    };
+  }
+  paint();
+}
+/* Real-time, no-account-needed delivery: if the owner has an alert endpoint
+   (e.g. Formspree) configured, POST the request there so it emails them instantly
+   regardless of which device the customer or owner is using. Falls back to
+   opening WhatsApp/email/clipboard for the customer to send themselves. */
+async function sendBookingAlert(p,b){
+  if(!p.alertWebhook) return false;
+  try{
+    const res=await fetch(p.alertWebhook,{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({ business:p.businessName||'', service:b.service||'', date:b.date||'', time:b.time||'', duration:b.duration||'', price:b.price||'', name:b.name, contact:b.contact, notes:b.notes||'' }) });
+    return res.ok;
+  }catch(e){ return false; }
+}
+function sendBooking(msg,c){
+  if(c.waLink) window.open('https://wa.me/'+c.waLink.value.replace(/[^\d]/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+  else if(c.emailLink) window.open('mailto:'+c.emailLink.value+'?subject='+encodeURIComponent('Appointment request')+'&body='+encodeURIComponent(msg),'_blank');
+  else{ navigator.clipboard&&navigator.clipboard.writeText(msg); toast(c.phoneLink?'Details copied — call to confirm your booking':'Details copied to clipboard'); }
+}
+
+/* ============================= BUSINESS CARD ============================= */
+const CARD_THEMES={
+  obsidian:{n:'Obsidian Copper',bg:'#16181D',ac:'#C98A62'},
+  gold:{n:'Black Gold',bg:'#17150F',ac:'#D8B45C'},
+  silver:{n:'Midnight Silver',bg:'#161A22',ac:'#C9CED8'},
+  emerald:{n:'Emerald',bg:'#0F1F1B',ac:'#CDAE6A'},
+  burgundy:{n:'Burgundy Rose',bg:'#2A1119',ac:'#E2B1A0'},
+  navy:{n:'Navy Ice',bg:'#0F1B33',ac:'#A9D3F0'},
+  ivory:{n:'Ivory Gold',bg:'#F4EFE4',ac:'#A8802F'},
+  pearl:{n:'Pearl Mono',bg:'#ECEDEF',ac:'#2A2D33'}
+};
+function cardCfg(p){ return {theme:'obsidian',foil:false,guide:true,ring:false,custom:{bg:'#16181D',ac:'#C98A62'},...(p.card||{})}; }
+function cardColors(p,c){
+  let bg,ac;
+  if(c.theme==='custom'){ bg=c.custom.bg; ac=c.custom.ac; }
+  else if(c.theme==='profile'){ const t=p.theme||{}; bg=t.bg||'#171A21'; ac=t.primary||'#C8842A'; }
+  else { const t=CARD_THEMES[c.theme]||CARD_THEMES.obsidian; bg=t.bg; ac=t.ac; }
+  return {bg, bg2:mixHex(bg,'#000000',lum(bg)>.5?.1:.5), ac};
+}
+function setCard(pid,patch){ const all=loadAll(), p=all[pid]; p.card={...cardCfg(p),...patch}; saveAll(all); return p; }
+
+const cardCache={};
+async function cardLogo(p){
+  const u=p.logoUrl||''; if(!u||u.startsWith('data:')) return u;
+  if(cardCache[u]!==undefined) return cardCache[u];
+  try{
+    const b=await (await fetch(u,{mode:'cors'})).blob();
+    cardCache[u]=await new Promise(res=>{ const f=new FileReader(); f.onload=()=>res(f.result); f.readAsDataURL(b); });
+  }catch(e){ cardCache[u]=''; }
+  return cardCache[u];
+}
+async function cardQr(p){
+  await ensureQrCode();
+  const q=new QRCode(document.createElement('div'),{text:publicLink(p),width:64,height:64,correctLevel:QRCode.CorrectLevel.L});
+  const m=q._oQRCode, n=m.getModuleCount(); let d='';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(m.isDark(r,c)) d+=`M${c} ${r}h1v1h-1z`;
+  return {n,d};
+}
+
+function cardSvg(p,side,logo,qr){
+  const c=cardCfg(p), k=cardColors(p,c), W=540, H=860, id=side[0], cx=270;
+  const light=lum(k.ac)>lum(k.bg), plate=light?k.ac:k.bg, mod=mixHex(light?k.bg:k.ac,'#000000',.45);
+  const [r,g,b]=hexToRgb(k.ac).map(v=>(v/255).toFixed(3));
+  const fo=`url(#fo${id})`;
+  const defs=`<defs>
+    <linearGradient id="bg${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${k.bg}"/><stop offset="1" stop-color="${k.bg2}"/></linearGradient>
+    <linearGradient id="fo${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mixHex(k.ac,'#FFFFFF',.35)}"/><stop offset=".5" stop-color="${k.ac}"/><stop offset="1" stop-color="${mixHex(k.ac,'#000000',.28)}"/></linearGradient>
+    <filter id="nz${id}"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".08"/></feComponentTransfer></filter>
+    <filter id="ft${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 1 0"/></filter>
+    <clipPath id="cl${id}"><rect width="${W}" height="${H}" rx="38"/></clipPath></defs>`;
+  const ring=(x,y,rad,w,o,extra)=>`<circle cx="${x}" cy="${y}" r="${rad}" fill="none" stroke="${fo}" stroke-width="${w}" stroke-opacity="${o}" ${extra||''}/>`;
+  const arcs=(x,y)=>[60,95,130,165].map((rad,i)=>ring(x,y,rad,1.5,(.34-i*.07).toFixed(2))).join('');
+  let body='';
+  if(side==='front'){
+    const cy=430, s=c.ring?280:360;
+    if(logo) body=`<image href="${logo}" x="${cx-s/2}" y="${cy-s/2}" width="${s}" height="${s}" preserveAspectRatio="xMidYMid meet" ${c.foil?`filter="url(#ft${id})"`:''}/>`;
+    else {
+      const ini=(p.businessName||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'T&amp;G';
+      body=`<text x="${cx}" y="${cy+52}" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="${fo}">${esc(ini).replace('&amp;amp;','&amp;')}</text>`;
+    }
+    if(c.ring) body+=ring(cx,cy,205,3,.9)+ring(cx,cy,217,1,.5);
+  } else {
+    const cy=440;
+    body=[172,196,220].map((rad,i)=>ring(cx,cy,rad,2,(.3-i*.08).toFixed(2))).join('');
+    if(c.guide) body+=ring(cx,cy,150,1.6,.7,'stroke-dasharray="3 7"');
+    if(qr){
+      const S=156, qx=W-44-S, qy=44, u=S/(qr.n+4);
+      body+=`<rect x="${qx}" y="${qy}" width="${S}" height="${S}" rx="10" fill="${plate}"/><g transform="translate(${(qx+2*u).toFixed(2)} ${(qy+2*u).toFixed(2)}) scale(${u.toFixed(4)})"><path d="${qr.d}" fill="${mod}" shape-rendering="crispEdges"/></g>`;
+    }
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}
+    <g clip-path="url(#cl${id})"><rect width="${W}" height="${H}" fill="url(#bg${id})"/><rect width="${W}" height="${H}" filter="url(#nz${id})"/>${arcs(0,0)}${arcs(W,H)}${body}</g>
+    <rect x="1.5" y="1.5" width="${W-3}" height="${H-3}" rx="37" fill="none" stroke="${fo}" stroke-opacity=".6" stroke-width="3"/></svg>`;
+}
+
+let cardTok=0;
+async function drawCard(p){
+  p=loadAll()[p.id]; if(!p||!$('cardStage')) return; const tok=++cardTok;
+  const [logo,qr]=await Promise.all([cardLogo(p),cardQr(p).catch(()=>null)]);
+  if(tok!==cardTok||!$('cardStage')) return;
+  $('cardStage').innerHTML=['front','back'].map(s=>`<div class="cardsvg">${cardSvg(p,s,logo,qr)}</div>`).join('');
+  if(!qr) toast('QR library could not load — check your connection');
+}
+
+function tabCard(p){
+  const c=cardCfg(p), k=cardColors(p,c), published=!!getMeta(p.id).published;
+  const dot=(a,b)=>`<span class="cdot" style="background:linear-gradient(135deg,${a} 50%,${b} 50%)"></span>`;
+  const chips=Object.entries(CARD_THEMES).map(([key,t])=>`<div class="chip ${c.theme===key?'selected':''}" data-ctheme="${key}">${dot(t.bg,t.ac)}${t.n}</div>`).join('')
+    +`<div class="chip ${c.theme==='profile'?'selected':''}" data-ctheme="profile">${dot(p.theme.bg,p.theme.primary)}Match my profile</div>`
+    +`<div class="chip ${c.theme==='custom'?'selected':''}" data-ctheme="custom">${dot(c.custom.bg,c.custom.ac)}Custom</div>`;
+  const tg=(key,label)=>`<div class="chip ${c[key]?'selected':''}" data-ctoggle="${key}">${c[key]?'✓ ':''}${label}</div>`;
+  return `<div class="card"><div style="font-weight:600; margin-bottom:4px;">Luxury business card</div>
+    <p class="hint" style="margin:0 0 14px;">Built automatically from your profile: only your logo on the front, only a QR code on the back, and a clear circle in the middle for your NFC sticker.</p>
+    ${published?'':`<div class="status-banner locked">Publish your profile in the Share tab first so the QR points to your live link.</div>`}
+    <div id="cardStage" class="cardstage"><span class="hint" style="color:#aaa;">Building your card…</span></div></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:10px;">Card theme</div>
+    <div class="addbar" style="margin-top:0;">${chips}</div>
+    <div class="row2" style="margin-top:16px;">
+      <div class="field"><label>Card colour</label><input type="color" id="cc_bg" value="${k.bg}" style="width:100%; height:40px; border:1px solid var(--line); border-radius:9px; background:var(--paper);"></div>
+      <div class="field"><label>Foil / accent colour</label><input type="color" id="cc_ac" value="${k.ac}" style="width:100%; height:40px; border:1px solid var(--line); border-radius:9px; background:var(--paper);"></div>
+    </div>
+    <div class="addbar" style="margin-top:0;">${tg('guide','Sticker guide ring')}${tg('ring','Ring around logo')}${tg('foil','Foil-tint logo')}</div>
+    <p class="hint">Foil-tint recolours your logo in the accent colour and only works for logos with a transparent background (PNG). Turn the sticker guide off for the final print file.</p></div>
+  <div class="card"><div style="font-weight:600; margin-bottom:6px;">Download</div>
+    <p class="hint" style="margin:0 0 12px;">High-resolution PNG (1620 × 2580, standard 54 × 85.6 mm card ratio) ready for your printer.</p>
+    <div class="addbar" style="margin-top:0;"><button class="btn btn-primary btn-sm" onclick="cardDownload('${p.id}','both')">Download front &amp; back</button>
+      <button class="btn btn-sm" onclick="cardDownload('${p.id}','front')">Front only</button><button class="btn btn-sm" onclick="cardDownload('${p.id}','back')">Back only</button></div></div>`;
+}
+function wireCard(p){
+  document.querySelectorAll('[data-ctheme]').forEach(el=>el.onclick=()=>renderEditor($('app'),setCard(p.id,{theme:el.dataset.ctheme})));
+  document.querySelectorAll('[data-ctoggle]').forEach(el=>el.onclick=()=>{ const key=el.dataset.ctoggle; renderEditor($('app'),setCard(p.id,{[key]:!cardCfg(loadAll()[p.id])[key]})); });
+  const cust=debounce(()=>{
+    setCard(p.id,{theme:'custom',custom:{bg:$('cc_bg').value,ac:$('cc_ac').value}});
+    document.querySelectorAll('[data-ctheme]').forEach(x=>x.classList.toggle('selected',x.dataset.ctheme==='custom'));
+    drawCard(p);
+  },120);
+  ['cc_bg','cc_ac'].forEach(i=>$(i).addEventListener('input',cust));
+}
+async function cardDownload(pid,which){
+  const p=loadAll()[pid]; toast('Rendering card…');
+  const [logo,qr]=await Promise.all([cardLogo(p),cardQr(p).catch(()=>null)]);
+  for(const side of (which==='both'?['front','back']:[which])){
+    const url=URL.createObjectURL(new Blob([cardSvg(p,side,logo,qr)],{type:'image/svg+xml;charset=utf-8'}));
+    try{
+      const img=new Image(); await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; });
+      const cv=document.createElement('canvas'); cv.width=1620; cv.height=2580; cv.getContext('2d').drawImage(img,0,0,1620,2580);
+      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+      a.download=(p.businessName||'tapngo').replace(/[^\w\-]+/g,'-').toLowerCase()+'-card-'+side+'.png';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    }catch(e){ toast('Could not render the card image'); }
+    URL.revokeObjectURL(url);
+  }
+}
+
+/* ============================= INIT ============================= */
+spawnParticles($('bgParticles'), window.innerWidth<640?4:9, ['var(--brass)','var(--plum)','var(--teal)','var(--gold-hi,#EBD08D)']);
+route();
+</script>
+</body>
+</html>
