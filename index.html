@@ -1813,7 +1813,7 @@ const CARD_THEMES={
   ivory:{n:'Ivory Gold',bg:'#F4EFE4',ac:'#A8802F'},
   pearl:{n:'Pearl Mono',bg:'#ECEDEF',ac:'#2A2D33'}
 };
-function cardCfg(p){ return {theme:'obsidian',foil:false,guide:true,ring:false,custom:{bg:'#16181D',ac:'#C98A62'},slots:[1,2,3,4,5,6,7,8,9,10,11,12],pdfSide:'both',guides:true,orient:'portrait',shape:'original',info:[],font:'Montserrat',fsize:26,fcolor:'',...(p.card||{})}; }
+function cardCfg(p){ return {theme:'obsidian',foil:false,guide:true,ring:false,custom:{bg:'#16181D',ac:'#C98A62'},slots:[1,2,3,4,5,6,7,8,9,10,11,12],pdfSide:'both',guides:true,orient:'portrait',shape:'original',info:[],font:'Montserrat',fsize:26,fcolor:'',nickOn:false,nick:'',nickFont:'Playfair Display',nickColor:'',nickScale:100,nickCaps:false,...(p.card||{})}; }
 function cardColors(p,c){
   let bg,ac;
   if(c.theme==='custom'){ bg=c.custom.bg; ac=c.custom.ac; }
@@ -1840,9 +1840,22 @@ function cardTexts(p,side){
     const f=s=>`500 ${s}px "${c.font}", sans-serif`; let size=c.fsize;
     cardMeasure.font=f(size); const w=cardMeasure.measureText(i.text.trim()).width; if(w>W-100) size=size*(W-100)/w;
     return {text:i.text.trim(),x:W/2,y:y0+n*lh,size,font:f(size),fam:c.font,color:c.fcolor||k.ac};
-  });
+  }).concat(side==='front'&&cardNickOn(c)?[cardNickText(p,c,k,W,H)]:[]);
 }
-async function cardFont(p){ const c=cardCfg(p); try{ await document.fonts.load(`500 ${c.fsize}px "${c.font}"`); }catch(e){} }
+/* ---- nickname as logo ---- */
+const NICK_FONTS=[{n:'Playfair Display',w:700},{n:'Cinzel',w:600},{n:'Cormorant Garamond',w:700},{n:'Montserrat',w:600},{n:'Poppins',w:600},{n:'Space Grotesk',w:700},{n:'Bebas Neue',w:400},{n:'Great Vibes',w:400},{n:'Dancing Script',w:700},{n:'Pacifico',w:400}];
+(function(){ const l=document.createElement('link'); l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@700&family=Pacifico&family=Bebas+Neue&display=swap'; document.head.appendChild(l); })();
+const cardNickOn=c=>!!c.nickOn&&!!String(c.nick||'').trim();
+const nickFontOf=c=>NICK_FONTS.find(f=>f.n===c.nickFont)||NICK_FONTS[0];
+function cardNickText(p,c,k,W,H){
+  const n=c.info.filter(i=>i.side==='front'&&(i.text||'').trim()).length, lh=c.fsize*1.55;
+  const top=n?H-60-(n-1)*lh-c.fsize-24:H-30, a0=n?50:30, cy=(a0+top)/2, f=nickFontOf(c);
+  let t=String(c.nick).trim().slice(0,24); if(c.nickCaps) t=t.toUpperCase();
+  cardMeasure.font=`${f.w} 100px "${f.n}", sans-serif`; const w100=cardMeasure.measureText(t).width||1;
+  const size=Math.max(24,Math.min(190*(c.nickScale/100),(W-110)/w100*100,(top-a0)*.62));
+  return {text:t,x:W/2,y:cy+size*.3,size,font:`${f.w} ${size}px "${f.n}", sans-serif`,fam:f.n,weight:f.w,color:c.nickColor||k.ac};
+}
+async function cardFont(p){ const c=cardCfg(p); try{ await document.fonts.load(`500 ${c.fsize}px "${c.font}"`); if(cardNickOn(c)){ const f=nickFontOf(c); await document.fonts.load(`${f.w} 100px "${f.n}"`); } }catch(e){} }
 function cardPrefill(p,t){ if(t==='tagline') return p.tagline||''; const l=(p.links||[]).find(x=>new RegExp(t,'i').test(x.type||'')); return l&&l.value?String(l.value):''; }
 function cardExtraHtml(p,c){
   const inp='padding:10px 12px; border-radius:9px; border:1px solid var(--line); background:var(--paper); color:var(--ink); width:100%; min-width:0;';
@@ -1851,6 +1864,7 @@ function cardExtraHtml(p,c){
   return `<div class="card"><div style="font-weight:600; margin-bottom:10px;">Card orientation</div>
     <div class="addbar" style="margin-top:0;">${[['portrait','Portrait'],['landscape','Landscape']].map(([k,n])=>`<div class="chip ${c.orient===k?'selected':''}" data-corient="${k}">${n}</div>`).join('')}</div>
     <p class="hint" style="margin:10px 0 0;">Landscape is the classic wide business card. In landscape, keep text to about 2 or 3 lines per side.</p></div>
+  ${cardNickHtml(p,c)}
   <div class="card"><div style="font-weight:600; margin-bottom:4px;">Logo background</div>
     <p class="hint" style="margin:0 0 10px;">Remove your logo's background so it blends into the card. Use the eyedropper to remove a colour automatically, or paint away what you don't want with the brush.</p>
     <div class="addbar" style="margin-top:0;"><button class="btn btn-primary btn-sm" onclick="openLogoEditor('${p.id}')">${cardHasCut(p)?'Edit background removal':'Remove background'}</button>${cardHasCut(p)?`<button class="btn btn-sm" onclick="leClear('${p.id}')">Use original logo</button>`:''}</div></div>
@@ -2070,12 +2084,13 @@ function cardSvg(p,side,logo,qr,noText){
   let body='';
   if(side==='front'){
     const n=c.info.filter(i=>i.side==='front'&&(i.text||'').trim()).length, shp=!!logo&&c.shape!=='original', lh=c.fsize*1.55, top=n?H-60-(n-1)*lh-c.fsize-24:H-30, a0=n?50:30, cy=(a0+top)/2, s=Math.min((shp?300:(c.ring?280:360))*(land?.85:1),(top-a0)/(c.ring&&!shp?1.5:1.1));
-    if(logo) body=(shp?`<clipPath id="lc${id}">${shapeEl(c.shape,cx,cy,s,'')}</clipPath>${shapeEl(c.shape,cx,cy,s,`fill="${k.ac}" fill-opacity=".1"`)}`:'')+`<image href="${logo}" xlink:href="${logo}" x="${cx-s/2}" y="${cy-s/2}" width="${s}" height="${s}" preserveAspectRatio="xMidYMid ${shp?'slice':'meet'}" ${shp?`clip-path="url(#lc${id})"`:''} ${c.foil?`filter="url(#ft${id})"`:''}/>`;
+    if(cardNickOn(c)) body='';
+    else if(logo) body=(shp?`<clipPath id="lc${id}">${shapeEl(c.shape,cx,cy,s,'')}</clipPath>${shapeEl(c.shape,cx,cy,s,`fill="${k.ac}" fill-opacity=".1"`)}`:'')+`<image href="${logo}" xlink:href="${logo}" x="${cx-s/2}" y="${cy-s/2}" width="${s}" height="${s}" preserveAspectRatio="xMidYMid ${shp?'slice':'meet'}" ${shp?`clip-path="url(#lc${id})"`:''} ${c.foil?`filter="url(#ft${id})"`:''}/>`;
     else {
       const ini=(p.businessName||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'T&amp;G';
       body=`<text x="${cx}" y="${cy+52}" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="${fo}">${esc(ini).replace('&amp;amp;','&amp;')}</text>`;
     }
-    if(c.ring) body+=shp?shapeEl(c.shape,cx,cy,s+16,`fill="none" stroke="${fo}" stroke-width="3" stroke-opacity=".9"`):ring(cx,cy,s*.73,3,.9)+ring(cx,cy,s*.73+12,1,.5);
+    if(c.ring&&!cardNickOn(c)) body+=shp?shapeEl(c.shape,cx,cy,s+16,`fill="none" stroke="${fo}" stroke-width="3" stroke-opacity=".9"`):ring(cx,cy,s*.73,3,.9)+ring(cx,cy,s*.73+12,1,.5);
   } else {
     const cy=land?H/2-15:H/2+10;
     body=[172,196,220].map((rad,i)=>ring(cx,cy,rad,2,(.3-i*.08).toFixed(2))).join('');
@@ -2086,7 +2101,7 @@ function cardSvg(p,side,logo,qr,noText){
     }
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}
-    <g clip-path="url(#cl${id})"><rect width="${W}" height="${H}" fill="url(#bg${id})"/><rect width="${W}" height="${H}" filter="url(#nz${id})"/>${arcs(0,0)}${arcs(W,H)}${body}${noText?'':cardTexts(p,side).map(t=>`<text x="${t.x}" y="${t.y.toFixed(1)}" text-anchor="middle" font-family="'${t.fam}',sans-serif" font-weight="500" font-size="${t.size.toFixed(1)}" fill="${t.color}">${esc(t.text)}</text>`).join('')}</g>
+    <g clip-path="url(#cl${id})"><rect width="${W}" height="${H}" fill="url(#bg${id})"/><rect width="${W}" height="${H}" filter="url(#nz${id})"/>${arcs(0,0)}${arcs(W,H)}${body}${noText?'':cardTexts(p,side).map(t=>`<text x="${t.x}" y="${t.y.toFixed(1)}" text-anchor="middle" font-family="'${t.fam}',sans-serif" font-weight="${t.weight||500}" font-size="${t.size.toFixed(1)}" fill="${t.color}">${esc(t.text)}</text>`).join('')}</g>
     <rect x="1.5" y="1.5" width="${W-3}" height="${H-3}" rx="${c.sq?0:37}" fill="none" stroke="${fo}" stroke-opacity=".6" stroke-width="3"/></svg>`;
 }
 
@@ -2127,6 +2142,7 @@ function tabCard(p){
   ${cardPrintHtml(p,c)}`;
 }
 function wireCard(p){
+  wireNick(p);
   document.querySelectorAll('[data-ctheme]').forEach(el=>el.onclick=()=>renderEditor($('app'),setCard(p.id,{theme:el.dataset.ctheme})));
   document.querySelectorAll('[data-ctoggle]').forEach(el=>el.onclick=()=>{ const key=el.dataset.ctoggle; renderEditor($('app'),setCard(p.id,{[key]:!cardCfg(loadAll()[p.id])[key]})); });
   const cust=debounce(()=>{
@@ -2154,6 +2170,32 @@ function wireCard(p){
   document.querySelectorAll('[data-slot]').forEach(el=>el.onclick=()=>{ const n=+el.dataset.slot, cur=cardCfg(loadAll()[p.id]).slots, nx=cur.includes(n)?cur.filter(x=>x!==n):[...cur,n]; setCard(p.id,{slots:nx}); el.classList.toggle('selected'); $('slotCount').textContent=nx.length; });
   document.querySelectorAll('[data-slotall]').forEach(el=>el.onclick=()=>renderEditor($('app'),setCard(p.id,{slots:el.dataset.slotall==='1'?[1,2,3,4,5,6,7,8,9,10,11,12]:[]})));
   document.querySelectorAll('[data-pside]').forEach(el=>el.onclick=()=>renderEditor($('app'),setCard(p.id,{pdfSide:el.dataset.pside})));
+}
+function cardNickHtml(p,c){
+  const k=cardColors(p,c), f=nickFontOf(c), on=c.nickOn;
+  return `<div class="card"><div style="font-weight:600; margin-bottom:4px;">Nickname as logo</div>
+    <p class="hint" style="margin:0 0 12px;">Use your nickname as the logo on the front of your card instead of an image. Your uploaded logo is kept safe and comes back when you switch this off.</p>
+    <div class="addbar" style="margin:0 0 12px;"><div class="chip ${on?'selected':''}" id="nk_toggle" role="switch" aria-checked="${on}">${on?'✓ Using my nickname':'Use my nickname'}</div></div>
+    ${on?`<div class="field"><label for="nk_text">Nickname</label><input type="text" id="nk_text" maxlength="24" value="${esc(c.nick)}" placeholder="e.g. Mia, Coach Ben, JR"><div class="hint">Up to 24 characters. Short names look best.</div></div>
+    <div style="font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px;">Style</div>
+    <div class="addbar" style="margin:0 0 12px;">${NICK_FONTS.map(x=>`<div class="chip ${x.n===f.n?'selected':''}" data-nickfont="${esc(x.n)}" style="font-family:'${esc(x.n)}',sans-serif; font-weight:${x.w};">${esc(c.nick.trim()?c.nick.trim().slice(0,12):'Nickname')}</div>`).join('')}</div>
+    <div class="row2"><div class="field"><label for="nk_size">Size: <span id="nk_sizeLbl">${c.nickScale}</span>%</label><input type="range" id="nk_size" min="40" max="100" value="${c.nickScale}" style="width:100%;"></div>
+    <div class="field"><label for="nk_color">Colour</label><div style="display:flex; gap:8px; align-items:center;"><input type="color" id="nk_color" value="${c.nickColor||k.ac}" style="flex:1; height:40px; border:1px solid var(--line); border-radius:9px; background:var(--paper);"><button class="btn btn-sm" type="button" id="nk_reset">Match accent</button></div></div></div>
+    <div class="addbar" style="margin:0;"><div class="chip ${c.nickCaps?'selected':''}" id="nk_caps">${c.nickCaps?'✓ ':''}UPPERCASE</div></div>
+    <div class="hint" style="margin-top:10px;">While this is on, the logo image, foil-tint and outline ring are not used on the front of the card.</div>`:''}</div>`;
+}
+function wireNick(p){
+  const pid=p.id, cur=()=>cardCfg(loadAll()[pid]), draw=debounce(()=>drawCard(p),120);
+  const tg=$('nk_toggle'); if(tg) tg.onclick=()=>{
+    const c=cur(), pre=c.nick||String(((loadAll()[pid].brand||{}).personName||loadAll()[pid].businessName||'')).trim().split(/\s+/)[0].slice(0,24);
+    renderEditor($('app'),setCard(pid,{nickOn:!c.nickOn,nick:pre}));
+  };
+  const tx=$('nk_text'); if(tx) tx.addEventListener('input',()=>{ setCard(pid,{nick:tx.value}); draw(); });
+  document.querySelectorAll('[data-nickfont]').forEach(el=>el.onclick=()=>renderEditor($('app'),setCard(pid,{nickFont:el.dataset.nickfont})));
+  const sz=$('nk_size'); if(sz) sz.addEventListener('input',()=>{ $('nk_sizeLbl').textContent=sz.value; setCard(pid,{nickScale:+sz.value}); draw(); });
+  const co=$('nk_color'); if(co) co.addEventListener('input',()=>{ setCard(pid,{nickColor:co.value}); draw(); });
+  const rs=$('nk_reset'); if(rs) rs.onclick=()=>renderEditor($('app'),setCard(pid,{nickColor:''}));
+  const cp=$('nk_caps'); if(cp) cp.onclick=()=>renderEditor($('app'),setCard(pid,{nickCaps:!cur().nickCaps}));
 }
 async function cardDownload(pid,which){
   const p=loadAll()[pid]; toast('Rendering card…');
